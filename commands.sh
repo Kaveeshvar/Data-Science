@@ -16,3 +16,7 @@ git push origin main
 
 #Pull (when working from multiple machines)
 git pull origin main
+
+git add .
+git commit -m "Update practice files and add Day 1 resources"
+git push origin main
