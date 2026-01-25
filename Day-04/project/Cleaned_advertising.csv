@@ -1,0 +1,13 @@
+ad_id,campaign,clicks,impressions,cost,ctr,cpc
+1,Summer_Sale,120,5000,250,0.024,2.08
+2,Summer_Sale,95,4200,210,0.0226,2.21
+3,Summer_Sale,60,3000,180,0.02,3.0
+4,App_Launch,200,8000,500,0.025,2.5
+5,App_Launch,180,7600,480,0.0237,2.67
+6,App_Launch,90,5000,300,0.018,3.33
+7,Festive_Offer,320,9000,520,0.0356,1.62
+8,Festive_Offer,280,8500,500,0.0329,1.79
+9,Festive_Offer,150,6000,350,0.025,2.33
+10,Brand_Awareness,40,7000,220,0.0057,5.5
+11,Brand_Awareness,55,7500,240,0.0073,4.36
+12,Brand_Awareness,35,6500,210,0.0054,6.0
