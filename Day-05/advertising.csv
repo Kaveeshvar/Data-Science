@@ -1,0 +1,13 @@
+ad_id,campaign,clicks,impressions,cost
+4,App_Launch,200,8000,500
+5,App_Launch,180,7600,480
+6,App_Launch,90,5000,300
+10,Brand_Awareness,40,7000,220
+11,Brand_Awareness,55,7500,240
+12,Brand_Awareness,35,6500,210
+7,Festive_Offer,320,9000,520
+8,Festive_Offer,280,8500,500
+9,Festive_Offer,150,6000,350
+1,Summer_Sale,120,5000,250
+2,Summer_Sale,95,4200,210
+3,Summer_Sale,60,3000,180
