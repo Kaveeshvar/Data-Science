@@ -63,6 +63,7 @@ select c.*
 from campaign_ctr c
     cross join overall_avg o
 where c.ctr > o.avg_ctr;
+
 -- One query of your own (business-driven)
 SELECT campaign ,sum(clicks) as clicks_sum,sum(impressions) as impressions_sum,
 (((sum(clicks)*1.0 / sum(impressions) ) *100) / ((sum(cost)*1.0 / sum(clicks) ) *100 )) as ctrlcpc
