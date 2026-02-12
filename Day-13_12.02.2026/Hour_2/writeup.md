@@ -34,3 +34,24 @@ GD :
         Scale features
         Add regularization
         Monitor data for anomalies
+
+
+
+Notes from other sources : 
+Essentially, we can picture GD optimization as a hiker (the weight coefficient) who wants to climb down a mountain (cost function) into a valley (cost minimum), and each step is determined by the steepness of the slope (gradient) and the leg length of the hiker (learning rate).
+
+Weights are importance numbers 
+They tell how much each input affects the output.
+Big weight = strong effect.
+Small weight = weak effect.
+
+Bias is the starting value 
+It shifts the line up or down,
+even when inputs are zero.
+
+μ (mu) means mean (average)
+
+σ (sigma) means standard deviation 📏
+It tells how much values spread out from the average.
+Small σ = close together.
+Big σ = far apart.

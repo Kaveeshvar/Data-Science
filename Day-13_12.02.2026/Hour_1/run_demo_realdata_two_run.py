@@ -3,6 +3,9 @@ from sklearn.datasets import load_diabetes
 
 from linear_regression_gd import LinearRegressionGD
 
+import json
+from pathlib import Path
+
 
 def deterministic_split(X, y, n_train=300):
     """
@@ -41,6 +44,7 @@ def poison_one_point(X_train, y_train):
 def train_eval(tag, X_train, y_train, X_test, y_test, reg_lambda=0.0):
     """
     Train GD LR and evaluate MSE on both train and test.
+    Also prints mu and sigma used for standardization.
     """
     model = LinearRegressionGD(
         lr=0.1,
@@ -63,12 +67,54 @@ def train_eval(tag, X_train, y_train, X_test, y_test, reg_lambda=0.0):
 
     print(f"\n=== {tag} ===")
     print(f"reg_lambda: {reg_lambda}")
+
     print("w (first 5):", model.w_[:5])
     print("b:", model.b_)
+
+    # 🔹 NEW: Print standardization stats
+    if hasattr(model, "mu_"):
+        print("mu (first 5):", model.mu_[:5])
+    else:
+        print("mu: None")
+
+    if hasattr(model, "sigma_"):
+        print("sigma (first 5):", model.sigma_[:5])
+    else:
+        print("sigma: None")
+
+    train_mse = float(np.mean((y_hat_train - y_train) ** 2))
+    test_mse = float(np.mean((y_hat_test - y_test) ** 2))
+
     print("train MSE:", train_mse)
     print("test  MSE:", test_mse)
 
     return model, train_mse, test_mse
+
+
+
+
+def export_artifact_json(model, out_path="model_artifacts/linear_regression_v1.json",
+                         model_version="1.0", schema_version="1.0"):
+    """
+    Exports the trained model params + training mu/sigma into the required JSON artifact.
+    """
+    artifact = {
+        "model_version": model_version,
+        "schema_version": schema_version,
+        "n_features": int(model.w_.shape[0]),
+        "weights": model.w_.astype(float).tolist(),
+        "bias": float(model.b_),
+        "mu": model.mu_.astype(float).tolist(),
+        "sigma": model.sigma_.astype(float).tolist(),
+    }
+
+    out_file = Path(out_path)
+    out_file.parent.mkdir(parents=True, exist_ok=True)
+
+    with out_file.open("w", encoding="utf-8") as f:
+        json.dump(artifact, f, indent=2)
+
+    print(f"\n✅ Exported model artifact → {out_file.resolve()}")
 
 
 def main():
@@ -98,6 +144,7 @@ def main():
         X_test=X_test, y_test=y_test,
         reg_lambda=0.0
     )
+    export_artifact_json(clean_model_A, out_path="model_artifacts/linear_regression_v1.json")
 
     poison_model_A, poison_train_mse_A, poison_test_mse_A = train_eval(
         tag="RUN 2 (POISONED) — Baseline",
