@@ -1,0 +1,7 @@
+{
+  "policy_version": "1.0",
+  "threshold": 0.05,
+  "metric_used": "f1",
+  "validation_auc": 0.5302466170229808,
+  "date_utc": "2026-02-13"
+}
