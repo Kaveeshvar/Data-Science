@@ -372,29 +372,141 @@ ORDER BY c.activation_week;
 -- Also compute average ticket size and total GMV.
 -- Tables: transactions, refunds, merchants
 -- Output: mcc, merchant_tier, success_rate, refund_rate, avg_amount_success, success_gmv
-
-
 WITH refund_txns AS (
-  SELECT DISTINCT txn_id FROM refunds
+    SELECT DISTINCT txn_id
+    FROM refunds
 )
-SELECT
-  m.mcc,
-  m.merchant_tier,
-  COUNT(t.txn_id)                               AS total_txns,
-  SUM(CASE WHEN t.status='success' THEN 1 ELSE 0 END) AS succ_txns,
-  COUNT(DISTINCT r.txn_id)                      AS refunded_txns,
-  ROUND(100.0 * SUM(CASE WHEN t.status='success' THEN 1 ELSE 0 END) 
-        / NULLIF(COUNT(t.txn_id),0), 2)         AS success_rate_percent,
-  ROUND(100.0 * COUNT(DISTINCT r.txn_id)
-        / NULLIF(SUM(CASE WHEN t.status='success' THEN 1 ELSE 0 END),0), 2) 
-    AS refund_rate_percent,
-  ROUND(AVG(CASE WHEN t.status='success' THEN t.amount END),2) AS avg_amount_success,
-  ROUND(SUM(CASE WHEN t.status='success' THEN t.amount ELSE 0 END),2) AS success_gmv
+SELECT m.mcc,
+    m.merchant_tier,
+    COUNT(t.txn_id) AS total_txns,
+    SUM(
+        CASE
+            WHEN t.status = 'success' THEN 1
+            ELSE 0
+        END
+    ) AS succ_txns,
+    COUNT(DISTINCT r.txn_id) AS refunded_txns,
+    ROUND(
+        100.0 * SUM(
+            CASE
+                WHEN t.status = 'success' THEN 1
+                ELSE 0
+            END
+        ) / NULLIF(COUNT(t.txn_id), 0),
+        2
+    ) AS success_rate_percent,
+    ROUND(
+        100.0 * COUNT(DISTINCT r.txn_id) / NULLIF(
+            SUM(
+                CASE
+                    WHEN t.status = 'success' THEN 1
+                    ELSE 0
+                END
+            ),
+            0
+        ),
+        2
+    ) AS refund_rate_percent,
+    ROUND(
+        AVG(
+            CASE
+                WHEN t.status = 'success' THEN t.amount
+            END
+        ),
+        2
+    ) AS avg_amount_success,
+    ROUND(
+        SUM(
+            CASE
+                WHEN t.status = 'success' THEN t.amount
+                ELSE 0
+            END
+        ),
+        2
+    ) AS success_gmv
 FROM transactions t
-LEFT JOIN merchants m ON t.merchant_id = m.merchant_id
-LEFT JOIN refund_txns r ON r.txn_id = t.txn_id
-GROUP BY m.mcc, m.merchant_tier
-HAVING SUM(CASE WHEN t.status='success' THEN 1 ELSE 0 END) >= 30   -- min successful txns
-   AND ROUND(100.0 * COUNT(DISTINCT r.txn_id)
-        / NULLIF(SUM(CASE WHEN t.status='success' THEN 1 ELSE 0 END),0), 2) >= 20
+    LEFT JOIN merchants m ON t.merchant_id = m.merchant_id
+    LEFT JOIN refund_txns r ON r.txn_id = t.txn_id
+GROUP BY m.mcc,
+    m.merchant_tier
+HAVING SUM(
+        CASE
+            WHEN t.status = 'success' THEN 1
+            ELSE 0
+        END
+    ) >= 30 -- min successful txns
+    AND ROUND(
+        100.0 * COUNT(DISTINCT r.txn_id) / NULLIF(
+            SUM(
+                CASE
+                    WHEN t.status = 'success' THEN 1
+                    ELSE 0
+                END
+            ),
+            0
+        ),
+        2
+    ) >= 20
 ORDER BY refund_rate_percent DESC;
+--- Learning cohorts
+-- Monthly Signup Cohort Retention
+WITH user_cohorts AS(
+    SELECT user_id,
+        date(signup_ts, 'start of month') AS cohort_month
+    FROM users
+)
+SELECT uc.cohort_month,
+    date(t.txn_ts, 'start of month') AS txn_month,
+    COUNT(DISTINCT t.user_id) AS active_users
+FROM user_cohorts uc
+    JOIN transactions t ON uc.user_id = t.user_id
+GROUP BY 1,
+    2
+ORDER BY 1,
+    2;
+WITH user_cohorts AS (
+    SELECT user_id,
+        date(signup_ts, 'start of month') AS cohort_month
+    FROM users
+),
+txn_data AS (
+    SELECT uc.cohort_month,
+        t.user_id,
+        date(t.txn_ts, 'start of month') AS txn_month,
+        (
+            strftime('%Y', t.txn_ts, 'start of month') - strftime('%Y', uc.cohort_month)
+        ) * 12 + (
+            strftime('%m', t.txn_ts, 'start of month') - strftime('%m', uc.cohort_month)
+        ) AS month_number
+    FROM user_cohorts uc
+        JOIN transactions t ON uc.user_id = t.user_id
+)
+SELECT cohort_month,
+    month_number,
+    COUNT(DISTINCT user_id) AS active_users
+FROM txn_data
+GROUP BY 1,
+    2
+ORDER BY 1,
+    2;
+
+-- Behavioral Cohort (First 7 Day Intensity)
+WITH first_week_txns AS (
+    SELECT
+        u.user_id,
+        COUNT(*) AS txn_count_7d
+    FROM users u
+    JOIN transactions t
+    ON u.user_id=t.user_id
+    AND t.txn_ts <= datetime(u.signup_ts,'+7 days')
+    GROUP BY 1
+),
+behavior_segment AS (
+    SELECT 
+        user_id,
+        CASE WHEN txn_count_7d >=3 THEN 'High Intent'
+        ELSE 'Low Intent'
+        END AS segment
+    FROM first_week_txns
+)
+SELECT * from behavior_segment
