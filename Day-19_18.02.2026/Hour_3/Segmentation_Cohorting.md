@@ -1,155 +1,140 @@
-1️⃣ First: What is Segmentation? What is Cohorting?
+# Segmentation & Cohorting
 
-Segmentation = slicing your users/events into meaningful buckets to explain behavior differences.
+## 1️⃣ First: What is Segmentation? What is Cohorting?
 
-Cohorting = grouping users by a shared starting event/time and tracking them over time.
+**Segmentation** = slicing your users/events into meaningful buckets to explain behavior differences.
 
-2️⃣ Why This Matters - Segmentation turns numbers into decisions.
+**Cohorting** = grouping users by a shared starting event/time and tracking them over time.
 
-If you don’t segment, your metrics lie to you.
+---
 
-Example:
+## 2️⃣ Why This Matters - Segmentation turns numbers into decisions.
 
-    Overall 30-day retention = 22%
+If you don't segment, your metrics lie to you.
+
+**Example:**
+
+Overall 30-day retention = 22%
 
 Now segment:
 
-    Paid acquisition users: 12%
+- Paid acquisition users: 12%
+- Organic users: 35%
+- Referral users: 48%
 
-    Organic users: 35%
+---
 
-    Referral users: 48%
+## 3️⃣ Where Segmentation is Used in Fintech
 
-3️⃣ Where Segmentation is Used in Fintech
-
-A. Revenue Segmentation → To know where unit economics work.
+### A. Revenue Segmentation → To know where unit economics work.
 
 Break revenue by:
 
-    Acquisition channel
+- Acquisition channel
+- Geography
+- Risk bucket
+- User tenure
+- Merchant category
 
-    Geography
-
-    Risk bucket
-
-    User tenure
-
-    Merchant category
-
-B. Risk Segmentation → Fraud rarely shows up evenly distributed.
+### B. Risk Segmentation → Fraud rarely shows up evenly distributed.
 
 Segment users by:
 
-    First 3 transactions behavior
+- First 3 transactions behavior
+- KYC speed
+- Device reuse
+- Cashback abuse
 
-    KYC speed
-
-    Device reuse
-
-    Cashback abuse 
-
-C. LTV Segmentation → Some cohorts are gold mines. Others burn cash.
+### C. LTV Segmentation → Some cohorts are gold mines. Others burn cash.
 
 Segment by:
 
-    Signup month
+- Signup month
+- Credit score band
+- Initial transaction amount
+- Activation
 
-    Credit score band
-
-    Initial transaction amount
-
-    Activation 
-
-
-D. Behavioral Segmentation → Early signals predict retention.
+### D. Behavioral Segmentation → Early signals predict retention.
 
 Segment by:
 
-**transactions in first 7 days**
+- **Transactions in first 7 days**
+- Average ticket size
+- Time to activation
+- Failed txn ratio
 
-    Average ticket size
+---
 
-    Time to activation
+## 4️⃣ Cohort Types
 
-    Failed txn ratio
-
-
-4️⃣ Cohort Types
-
-1. Time-Based Cohort (Classic)
+### 1. Time-Based Cohort (Classic)
 Group users by signup month.
+
 Track:
 
-    Retention
+- Retention
+- Revenue
+- Txns
+- Refund rate
 
-    Revenue
-
-    txns
-
-    Refund rate
-
-2. Event-Based Cohort
+### 2. Event-Based Cohort
 Group by:
 
-    First successful txn
-
-    First loan disbursement
-
-    First cashback redemption
+- First successful txn
+- First loan disbursement
+- First cashback redemption
 
 Signup ≠ activation. In fintech, signup means nothing. Activation matters.
 
-3. Behavior-Based Cohort
+### 3. Behavior-Based Cohort
 Group by:
 
-    Users who did ≥3 txns in first 7 days
+- Users who did ≥3 txns in first 7 days
+- Users who transacted ≥₹1000 first week
+- Users who added card within 24h
 
-    Users who transacted ≥₹1000 first week
-
-    Users who added card within 24h
-
-4. Acquisition Cohort
+### 4. Acquisition Cohort
 Group by:
 
-    Channel
-
-    Campaign
-
-    Adset
+- Channel
+- Campaign
+- Adset
 
 Track:
 
-    CAC
+- CAC
+- 7d revenue
+- 30d retention
+- Payback window
 
-    7d revenue
-
-    30d retention
-
-    Payback window
-
-5. Risk Cohort
+### 5. Risk Cohort
 Group by:
 
-    Risk_flag
+- Risk_flag
+- Device duplication
+- Geo risk
 
-    Device duplication
+---
 
-    Geo risk
+## 5️⃣ When To Use Which Cohort?
 
-5️⃣ When To Use Which Cohort?
+1. **Are you trying to explain time evolution?**  
+   → Use time-based cohort.
 
-1. Are you trying to explain time evolution?
-→ Use time-based cohort.
-2. Are you trying to compare groups?
-→ Use segmentation.
-3. Are you trying to predict future value early?
-→ Use behavior-based cohort.
-4. Are you allocating spend?
-→ Use acquisition cohort.
+2. **Are you trying to compare groups?**  
+   → Use segmentation.
 
+3. **Are you trying to predict future value early?**  
+   → Use behavior-based cohort.
 
-7️⃣ Basic SQL: Monthly Signup Cohort Retention
+4. **Are you allocating spend?**  
+   → Use acquisition cohort.
 
+---
+
+## 7️⃣ Basic SQL: Monthly Signup Cohort Retention
+
+```sql
 WITH user_cohorts AS(
     SELECT 
         user_id,
@@ -165,9 +150,13 @@ JOIN transactions t
 ON uc.user_id=t.user_id
 GROUP BY 1,2
 ORDER BY 1,2;
+```
 
+---
 
--- 9️⃣Behavioral Cohort (First 7 Day Intensity)
+## 9️⃣ Behavioral Cohort (First 7 Day Intensity)
+
+```sql
 WITH first_week_txns AS (
     SELECT
         u.user_id,
@@ -187,283 +176,282 @@ behavior_segment AS (
     FROM first_week_txns
 )
 SELECT * from behavior_segment
+```
 
-11️⃣ Strategic Thinking Level
+---
 
-Which users deserve cashback?
-Which channel to shut down?
-Which early behavior predicts LTV?
-Which risk band to tighten?
-Which feature improved retention?
+## 1️⃣1️⃣ Strategic Thinking Level
 
+- Which users deserve cashback?
+- Which channel to shut down?
+- Which early behavior predicts LTV?
+- Which risk band to tighten?
+- Which feature improved retention?
 
-12️⃣ Interview-Level Advanced Thinking
+---
 
-How would you identify high LTV users early?
-    Create behavior-based cohort from first 7–14 days
-    Track long-term revenue by cohort
-    Identify predictive signals
-    Validate statistical significance
-    Deploy segmentation into CRM
+## 1️⃣2️⃣ Interview-Level Advanced Thinking
 
+**How would you identify high LTV users early?**
 
-13️⃣
+- Create behavior-based cohort from first 7–14 days
+- Track long-term revenue by cohort
+- Identify predictive signals
+- Validate statistical significance
+- Deploy segmentation into CRM
 
-Q1:
+---
 
-You see 30-day retention dropped from 28% to 24%.
-What cohort analysis would you run first?
-Answer : 
+## 1️⃣3️⃣ Interview Questions
+
+### Q1: You see 30-day retention dropped from 28% to 24%. What cohort analysis would you run first?
+
+**Answer:**
+
 Is this a specific signup cohort issue or a measurement issue?
-1. Run time-based signup cohort retention
-    If only recent cohorts are lower → something changed:
 
-    Product
+**1. Run time-based signup cohort retention**
 
-    Onboarding
+If only recent cohorts are lower → something changed:
 
-    Traffic quality
+- Product
+- Onboarding
+- Traffic quality
+- Risk filters
+- Cashback structure
 
-    Risk filters
+If all cohorts shifted → maybe:
 
-    Cashback structure
+- Definition change
+- Tracking bug
+- Transaction classification change
 
-    If all cohorts shifted → maybe:
+**2. THEN segment inside affected cohorts by:**
 
-    Definition change
+- Acquisition channel
+- App version
+- Activation speed
+- First txn amount
 
-    Tracking bug
+---
 
-    Transaction classification change
-
-2. THEN segment inside affected cohorts by:
-
-    Acquisition channel
-
-    App version
-
-    Activation speed
-
-    First txn amount
-
-
-
-Q2:
-
-You are asked: “Why is revenue flat despite user growth?”
-
-What segmentation would you perform?
+### Q2: You are asked: "Why is revenue flat despite user growth?" What segmentation would you perform?
 
 Revenue = Active Users × Txns per User × Avg Ticket × Take Rate
 
 One of these is declining:
 
-    Activation rate
+- Activation rate
+- Engagement intensity
+- Avg ticket size
+- Take rate
+- Or mix shifted to low-value users
 
-    Engagement intensity
+**1. Cohort by signup month** → See if new cohorts monetise worse.
 
-    Avg ticket size
+**2. Segment by acquisition channel** → Maybe scaling low-intent paid traffic.
 
-    Take rate
+**3. Segment by user tenure** → Are new users contributing less than old users?
 
-    Or mix shifted to low-value users
+**4. Segment by txn frequency bucket** → Maybe growth is in low-frequency users.
 
-1. Cohort by signup month -> See if new cohorts monetise worse.
-2. Segment by acquisition channel -> Maybe scaling low-intent paid traffic.
-3. Segment by user tenure -> Are new users contributing less than old users?
-4. Segment by txn frequency bucket:-> Maybe growth is in low-frequency users.
+---
 
-Q3:
+### Q3: You notice referral users have 2x LTV. What advanced segmentation would you run next?
 
-You notice referral users have 2x LTV.
-What advanced segmentation would you run next?
+**Why?**
 
-    Why?
+- Is it because they're socially validated?
+- Do they activate faster?
+- Do they transact more frequently?
+- Is fraud lower?
+- Is retention higher?
 
-    Is it because they’re socially validated?
+**Compare behavior metrics:**
 
-    Do they activate faster?
+- Time to first txn
+- Txns in first 7 days
+- Failed txn rate
+- Refund rate
+- Risk_flag rate
 
-    Do they transact more frequently?
+**Segment referral users by:**
 
-    Is fraud lower?
+- Referrer quality (high-LTV referrers vs low)
+- Reward amount
+- Social graph depth
 
-    Is retention higher?
+**Check diminishing returns:**
 
-Compare behavior metrics:
-    Time to first txn
+- Does LTV drop when referral volume scales?
 
-    Txns in first 7 days
+---
 
-    Failed txn rate
+### Q4: If you had to predict LTV in first 10 days, what 3 behavioral features would you test?
 
-    Refund rate
+**Option 1:**
 
-    Risk_flag rate
-Segment referral users by:
-    Referrer quality (high-LTV referrers vs low)
+- Users who transacted ≥₹1500 in first week
+- Users who added card within 24h
+- Users who did ≥5 txns in first 10 days
 
-    Reward amount
+**Option 2:**
 
-    Social graph depth
-Check diminishing returns:
-    Does LTV drop when referral volume scales?
+- Txn velocity → txns / days active
+- Avg ticket size
+- Revenue margin in first 10 days
+- Payment method diversity
+- Time to activation
+- Failed txn ratio
+- Refund ratio
 
+---
 
-Q4:
+## Strategic Segmentation Framework
 
-If you had to predict LTV in first 10 days, what 3 behavioral features would you test?
+Strategic purposes for segmentation:
 
-Users who transacted ≥₹1500 in first week
-Users who added card within 24h
-Users who did ≥5 txns in first 10 days
+1️⃣ **Diagnosis**  
+2️⃣ **Optimization**  
+3️⃣ **Prediction**  
+4️⃣ **Personalization**  
+5️⃣ **Risk Control**
 
-Txn velocity -> txns / days active
-Avg ticket size
-Revenue margin in first 10 days
-Payment method diversity
-Time to activation
-Failed txn ratio
-Refund ratio
+---
 
+## Advanced Cohort Types
 
-### Strategic Segmentation Framework
-strategic purposes for segmentation:
-1️⃣ Diagnosis
-2️⃣ Optimization
-3️⃣ Prediction
-4️⃣ Personalization
-5️⃣ Risk Control
+**Revenue Cohort** → Cohort by first transaction revenue bucket.
 
+**Survival Cohort** → Track probability of churn at each period.
 
-Advanced Cohort Types
-Revenue Cohort -> Cohort by first transaction revenue bucket.
+**Feature Adoption Cohort** → Users who used feature X in first week vs didn't.
 
-Survival Cohort -> Track probability of churn at each period.
+**Pre/Post Intervention Cohort** → Users before cashback change vs after.
 
-Feature Adoption Cohort -> Users who used feature X in first week vs didn’t.
+---
 
-Pre/Post Intervention Cohort -> Users before cashback change vs after.
+## Advanced Interview Questions
 
+### Q1: If you cohort by signup month and see retention dropping, what are 5 hypotheses you generate immediately?
 
-Q1:
+**Scenario:**
 
-If you cohort by signup month and see:
+- Jan cohort Month 1 retention = 40%
+- Feb cohort Month 1 retention = 32%
+- Mar cohort Month 1 retention = 24%
 
-Jan cohort Month 1 retention = 40%
-Feb cohort Month 1 retention = 32%
-Mar cohort Month 1 retention = 24%
+**First classify the problem:**
 
-What are 5 hypotheses you generate immediately?
-
-First classify the problem:
-Retention drop is monotonic across recent cohorts →
+Retention drop is monotonic across recent cohorts →  
 This suggests something progressively worsening
 
-1️⃣ Traffic Mix Shift -> Check acquisition channel mix per cohort.
-    % Paid Search increased?
+**1️⃣ Traffic Mix Shift**
 
-    % Incentivized traffic increased?
+Check acquisition channel mix per cohort.
 
-    % Low-quality geos increased?
+- % Paid Search increased?
+- % Incentivized traffic increased?
+- % Low-quality geos increased?
 
-2️⃣ Activation Rate Drop -> Month 0 activation rate per cohort.
-Maybe users sign up but don’t activate.
+**2️⃣ Activation Rate Drop**
 
-3️⃣ Early Experience  -> Failed txn ratio in first 7 days per cohort.
+Month 0 activation rate per cohort.  
+Maybe users sign up but don't activate.
 
-    App crash rate increased?
+**3️⃣ Early Experience**
 
-    Failed txn ratio increased?
+Failed txn ratio in first 7 days per cohort.
 
-    Payment gateway failure?
+- App crash rate increased?
+- Failed txn ratio increased?
+- Payment gateway failure?
 
-4️⃣ Incentive Dilution ->     Cashback cost per activated user per cohort.
+**4️⃣ Incentive Dilution**
 
-     reduced? Eligibility tightened?
+Cashback cost per activated user per cohort.
 
-5️⃣ Risk Policy Tightening -> % risk_flag users per cohort.
-    Maybe you blocked borderline users who used to transact.
+- Reduced?
+- Eligibility tightened?
 
-Q2:
+**5️⃣ Risk Policy Tightening**
 
-You build a 7-day high-intent segment.
-It shows 3x LTV.
+% risk_flag users per cohort.  
+Maybe you blocked borderline users who used to transact.
 
-How do you validate that this is causal and not correlation?
+---
 
-Step 1: Control for Acquisition Channel
+### Q2: You build a 7-day high-intent segment. It shows 3x LTV. How do you validate that this is causal and not correlation?
+
+**Step 1: Control for Acquisition Channel**
 
 Maybe high-intent users come mostly from referral.
 
-So compare:
+So compare:  
 High-intent vs low-intent within same channel.
 
-Step 2: Control for Risk Flag
+**Step 2: Control for Risk Flag**
 
 High txn velocity might just mean high credit score users.
 
 Control for risk bucket.
 
-Step 3: Regression / Matching
+**Step 3: Regression / Matching**
 
 Run:
 
+```
 LTV ~ txn_count_7d + acq_channel + geo + risk_flag
+```
 
-If txn_count_7d coefficient still strong → stronger causal signal.
+If `txn_count_7d` coefficient still strong → stronger causal signal.
 
-Step 4: Intervention Test
+**Step 4: Intervention Test**
 
-Give targeted push notification to low-intent users:
+Give targeted push notification to low-intent users:  
 Encourage 3rd transaction.
 
 If LTV increases → causal.
 
-That’s how product analytics validates causality.
+That's how product analytics validates causality.
 
-Q3:
+---
 
-You segment by acquisition channel and see:
+### Q3: You segment by acquisition channel. Which channel do you scale? How do you decide?
 
-Paid Search users:
+**Scenario:**
 
-    High volume
+**Paid Search users:**
 
-    Low retention
+- High volume
+- Low retention
+- High CAC
+- Low refund rate
 
-    High CAC
+**Referral users:**
 
-    Low refund rate
+- Low volume
+- High retention
+- Low CAC
+- Slightly higher refund rate
 
-Referral users:
-
-    Low volume
-
-    High retention
-
-    Low CAC
-
-    Slightly higher refund rate
-
-Which channel do you scale?
-How do you decide?
-
+**Analysis:**
 
 If:
 
-Paid:
-LTV = ₹800
-CAC = ₹700
+**Paid:**  
+LTV = ₹800  
+CAC = ₹700  
 LTV/CAC = 1.14
 
-Referral:
-LTV = ₹1500
-CAC = ₹300
+**Referral:**  
+LTV = ₹1500  
+CAC = ₹300  
 LTV/CAC = 5
 
 Then scaling referral is obvious.
 
-But maybe referral is supply constrained.
+**But:**
 
-Paid search may improve with targeting.
+- Maybe referral is supply constrained.
+- Paid search may improve with targeting.
