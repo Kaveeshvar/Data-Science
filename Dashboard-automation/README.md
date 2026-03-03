@@ -1,8 +1,9 @@
 # Auto Dashboard Generator
 
-Generate professional, interactive HTML dashboards from CSV/XLSX files with automatic chart selection, data coercion, and optional LLM-powered analysis.
+Generate professional, interactive HTML dashboards from CSV/XLSX files with automatic chart selection, data coercion, optional LLM-powered analysis, and a simple front-end uploader.
 
 ## Features
+
 ✅ **Automatic data type detection** — coerces numeric strings and detects datetime columns  
 ✅ **Smart chart generation** — histograms, bar charts, line trends, scatter plots, box plots  
 ✅ **LLM integration** — optionally use Groq to pick optimal chart specs  
@@ -10,13 +11,15 @@ Generate professional, interactive HTML dashboards from CSV/XLSX files with auto
 ✅ **Professional design** — dark GitHub-style theme, responsive layout  
 ✅ **Large dataset support** — handles 500k+ rows efficiently  
 ✅ **Auto-naming** — HTML files named after dataset (e.g., `banking_dataset_dashboard.html`)
+✅ **Simple web UI** — upload data and generate dashboard using Streamlit
+✅ **Organized storage** — uploaded files saved in `inputs/`, dashboards saved in `outputs/`
 
 ## Setup
 
 ### 1. Requirements
 
 ```bash
-pip install pandas plotly groq python-dotenv openpyxl numpy
+pip install pandas plotly groq python-dotenv openpyxl numpy streamlit
 ```
 
 ### 2. Environment Configuration
@@ -30,17 +33,32 @@ GROQ_MODEL=llama-3.3-70b-versatile
 
 ## Usage
 
+### Front-end (recommended)
+
+```bash
+streamlit run app.py
+```
+
+Then:
+
+- Upload a `.csv`, `.xlsx`, or `.xls` file
+- Click **Generate Dashboard**
+- Input file is stored in `inputs/`
+- Dashboard HTML is stored in `outputs/`
+
 ### Basic (Auto-generated filename)
 
 ```bash
 python dashboard.py banking_dataset.csv
-# → Creates: banking_dataset_dashboard.html
+# → Saves a copy in inputs/
+# → Creates: outputs/banking_dataset_dashboard.html
 ```
 
 ### With custom output name
 
 ```bash
 python dashboard.py banking_dataset.csv --out my_report.html
+# → Creates: outputs/my_report.html
 ```
 
 ### Interactive prompt
@@ -48,7 +66,7 @@ python dashboard.py banking_dataset.csv --out my_report.html
 ```bash
 python dashboard.py
 # 📊 Enter path to CSV/XLSX file: banking_dataset.csv
-# → Creates: banking_dataset_dashboard.html
+# → Saves input in inputs/ and dashboard in outputs/
 ```
 
 ### With LLM spec generation
@@ -87,6 +105,11 @@ Generates a single-page HTML dashboard with:
 - **Secondary Charts** (2-column grid) — additional insights
 - **Data Quality Panel** — missing values, duplicates, memory usage
 - **Analyst Summary** — auto-generated insights
+
+Storage locations:
+
+- `inputs/` → saved dataset files
+- `outputs/` → generated dashboard HTML files
 
 All dashboards include Plotly.js (CDN-loaded) for interactive exploration.
 

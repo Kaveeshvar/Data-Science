@@ -20,6 +20,7 @@ import os
 import re
 import html as html_module
 import time
+import shutil
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -56,6 +57,10 @@ LLM_MAX_RETRIES = 2
 LLM_RETRY_SLEEP = 1.0
 
 PLOTLY_CDN = "https://cdn.plot.ly/plotly-2.35.2.min.js"
+
+BASE_DIR = Path(__file__).resolve().parent
+INPUTS_DIR = BASE_DIR / "inputs"
+OUTPUTS_DIR = BASE_DIR / "outputs"
 
 # Consistent Plotly template applied to every figure
 CHART_TEMPLATE = "plotly_dark"
@@ -975,10 +980,36 @@ def _generate_html_filename(input_path: str) -> str:
     """Generate a custom HTML filename from the dataset name."""
     p = Path(input_path)
     stem = p.stem  # filename without extension (e.g., "banking_dataset")
-    # Convert to title case and add "Dashboard" suffix
-    friendly_name = stem.replace("_", " ").title()
     output_name = f"{stem}_dashboard.html"
-    return output_name
+    return str(OUTPUTS_DIR / output_name)
+
+
+def _ensure_io_dirs() -> None:
+    INPUTS_DIR.mkdir(parents=True, exist_ok=True)
+    OUTPUTS_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def _persist_input_file(input_path: str) -> str:
+    """Store a copy of the source dataset inside inputs/ and return that path."""
+    src = Path(input_path).resolve()
+    if not src.exists() or not src.is_file():
+        raise FileNotFoundError(f"Input file not found: {src}")
+
+    ext = src.suffix.lower()
+    if ext not in {".csv", ".xlsx", ".xls"}:
+        raise ValueError(f"Unsupported file type: {ext}")
+
+    if src.parent == INPUTS_DIR.resolve():
+        return str(src)
+
+    destination = INPUTS_DIR / src.name
+    if destination.exists():
+        timestamp = time.strftime("%Y%m%d_%H%M%S")
+        destination = INPUTS_DIR / f"{src.stem}_{timestamp}{src.suffix}"
+
+    shutil.copy2(src, destination)
+    log.info("Saved input copy → %s", destination)
+    return str(destination)
 
 
 def main(
@@ -987,9 +1018,16 @@ def main(
     sheet: Optional[str] = None,
     use_groq: bool = False,
 ):
+    _ensure_io_dirs()
+
+    # Save input dataset into inputs/ for reproducibility
+    input_path = _persist_input_file(input_path)
+
     # Auto-generate HTML filename if not provided
     if out_html is None:
         out_html = _generate_html_filename(input_path)
+    else:
+        out_html = str(OUTPUTS_DIR / Path(out_html).name)
     
     # ── Load & process ──
     df = load_table(input_path, sheet=sheet)

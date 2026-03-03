@@ -1,0 +1,464 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Data Analysis Dashboard</title>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ── Reset & Base ────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:15px;-webkit-font-smoothing:antialiased;scroll-behavior:smooth}
+body{
+  font-family:'Inter',system-ui,sans-serif;
+  background:#18181b;color:#fafafa;
+  line-height:1.6;
+}
+
+/* ── Page Layout ─────────────────────────────────── */
+.page{max-width:1340px;margin:0 auto;padding:36px 32px 72px}
+
+/* ── Header ──────────────────────────────────────── */
+.header{
+  border-bottom:1px solid #3f3f46;
+  padding-bottom:24px;margin-bottom:32px;
+}
+.header h1{
+  font-size:1.85rem;font-weight:800;
+  letter-spacing:-.03em;
+  background:linear-gradient(135deg,#ea580c,#f97316);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+  margin-bottom:6px;
+}
+.header .subtitle{color:#a1a1aa;font-size:.85rem}
+.header .theme-badge{
+  display:inline-block;margin-top:8px;padding:3px 12px;border-radius:20px;
+  font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;
+  background:#f9731620;color:#f97316;
+}
+
+/* ── Section Headers ─────────────────────────────── */
+.section{margin-top:44px}
+.section-header{
+  display:flex;align-items:center;gap:14px;
+  margin-bottom:20px;
+}
+.section-icon{
+  width:40px;height:40px;border-radius:11px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;flex-shrink:0;
+}
+.section-header h2{font-size:1.2rem;font-weight:700;color:#fafafa}
+.section-subtitle{font-size:.82rem;color:#a1a1aa;margin-top:2px}
+
+/* ── KPI Row ─────────────────────────────────────── */
+.kpi-row{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(175px,1fr));
+  gap:14px;
+}
+.kpi-card{
+  background:#27272a;border:1px solid #3f3f46;border-radius:14px;
+  padding:20px 22px;display:flex;flex-direction:column;gap:8px;
+  transition:all .2s ease;box-shadow:0 1px 3px rgba(0,0,0,.3),0 1px 2px rgba(0,0,0,.2);
+}
+.kpi-card:hover{
+  border-color:#f9731650;
+  box-shadow:0 8px 24px rgba(0,0,0,.45);
+  transform:translateY(-2px);
+}
+.kpi-label{
+  font-size:.7rem;font-weight:600;text-transform:uppercase;
+  letter-spacing:.06em;color:#a1a1aa;
+}
+.kpi-value{font-size:1.6rem;font-weight:800;color:#fafafa}
+
+/* ── Chart Grid ──────────────────────────────────── */
+.chart-grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.chart-grid-1{display:grid;grid-template-columns:1fr;gap:16px}
+@media(max-width:900px){.chart-grid-2{grid-template-columns:1fr}}
+.chart-card{
+  background:#27272a;border:1px solid #3f3f46;border-radius:16px;
+  padding:16px 18px 10px;overflow:hidden;
+  box-shadow:0 1px 3px rgba(0,0,0,.3),0 1px 2px rgba(0,0,0,.2);transition:all .2s ease;
+}
+.chart-card:hover{
+  border-color:#f9731650;
+  box-shadow:0 8px 24px rgba(0,0,0,.45);
+  transform:translateY(-1px);
+}
+
+/* ── Cards ───────────────────────────────────────── */
+.card{
+  background:#27272a;border:1px solid #3f3f46;border-radius:14px;
+  padding:24px;box-shadow:0 1px 3px rgba(0,0,0,.3),0 1px 2px rgba(0,0,0,.2);transition:all .2s ease;
+}
+.card:hover{border-color:#f9731650;box-shadow:0 8px 24px rgba(0,0,0,.45)}
+.card h3{font-size:1rem;font-weight:700;margin-bottom:16px;color:#fafafa}
+
+/* ── Outlier Summary ─────────────────────────────── */
+.summary-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px}
+.summary-card{
+  background:#2d2d30;border:1px solid #3f3f46;border-radius:12px;
+  padding:18px 20px;text-align:center;
+}
+.summary-card .sv{font-size:1.8rem;font-weight:800;color:#eab308;display:block}
+.summary-card .sl{font-size:.72rem;color:#a1a1aa;text-transform:uppercase;letter-spacing:.05em;margin-top:4px}
+
+/* ── Outlier Table ───────────────────────────────── */
+.outlier-table{overflow-x:auto;margin-top:16px}
+.outlier-table table{width:100%;border-collapse:collapse;font-size:.85rem}
+.outlier-table th{
+  text-align:left;padding:10px 14px;border-bottom:2px solid #3f3f46;
+  font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;
+  color:#a1a1aa;font-weight:600;
+}
+.outlier-table td{
+  padding:10px 14px;border-bottom:1px solid #3f3f46;
+  color:#fafafa;
+}
+.outlier-table tr:hover td{background:#2d2d30}
+
+/* ── Correlation Pairs ───────────────────────────── */
+.corr-pair{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:10px 16px;border-bottom:1px solid #3f3f46;font-size:.88rem;
+}
+.corr-pair:last-child{border-bottom:none}
+.corr-pair .cp-names{color:#fafafa}
+.corr-pair .cp-val{font-weight:700;font-family:monospace}
+.cp-pos{color:#f97316}
+.cp-neg{color:#ef4444}
+
+/* ── ML Recommendation ───────────────────────────── */
+.task-badge{
+  display:inline-block;padding:6px 18px;border-radius:24px;
+  font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+  background:linear-gradient(135deg,#ea580c,#f97316);
+  color:#fff;margin-bottom:12px;
+}
+.ml-reason{color:#a1a1aa;font-size:.9rem;margin-bottom:20px;line-height:1.6}
+.target-box{
+  background:#2d2d30;border-left:4px solid #f97316;
+  padding:14px 20px;border-radius:0 10px 10px 0;margin-bottom:20px;
+  font-size:.9rem;color:#fafafa;
+}
+.target-box strong{color:#f97316}
+.model-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-bottom:20px}
+.model-card{
+  background:#27272a;border:1px solid #3f3f46;border-radius:14px;
+  padding:22px;position:relative;overflow:hidden;
+  box-shadow:0 1px 3px rgba(0,0,0,.3),0 1px 2px rgba(0,0,0,.2);transition:all .2s ease;
+}
+.model-card:hover{border-color:#f9731650;box-shadow:0 8px 24px rgba(0,0,0,.45);transform:translateY(-2px)}
+.model-card .rank{
+  position:absolute;top:0;right:0;
+  background:linear-gradient(135deg,#ea580c,#f97316);
+  color:#fff;padding:6px 14px;border-radius:0 14px 0 14px;
+  font-size:.75rem;font-weight:800;
+}
+.model-card h4{font-size:1.05rem;font-weight:700;margin-bottom:6px;color:#fafafa;padding-right:50px}
+.score-bar{
+  height:8px;border-radius:4px;background:#2d2d30;margin:12px 0 10px;overflow:hidden;
+}
+.score-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#ea580c,#f97316)}
+.score-label{font-size:.75rem;color:#a1a1aa;margin-bottom:10px}
+.model-card .reason{font-size:.84rem;color:#a1a1aa;line-height:1.55;margin-bottom:12px}
+.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pros-cons ul{padding-left:16px;font-size:.78rem;line-height:1.6}
+.pros-cons .pros-title{color:#22c55e;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.pros-cons .cons-title{color:#ef4444;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.pros-cons li{color:#a1a1aa}
+
+/* ── Preprocessing Steps ─────────────────────────── */
+.prep-steps{padding-left:20px;color:#a1a1aa;font-size:.88rem;line-height:1.8}
+.prep-steps li::marker{color:#f97316}
+
+/* ── Insights ────────────────────────────────────── */
+.insights-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px}
+.insight-card{
+  background:#27272a;border:1px solid #3f3f46;border-radius:14px;
+  padding:22px 24px;box-shadow:0 1px 3px rgba(0,0,0,.3),0 1px 2px rgba(0,0,0,.2);transition:all .2s ease;
+  border-top:3px solid transparent;
+}
+.insight-card:hover{border-color:#f9731650;box-shadow:0 8px 24px rgba(0,0,0,.45);transform:translateY(-2px)}
+.insight-card.impact-high{border-top-color:#ef4444}
+.insight-card.impact-medium{border-top-color:#eab308}
+.insight-card.impact-low{border-top-color:#22c55e}
+.insight-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.insight-badge{
+  padding:3px 10px;border-radius:12px;font-size:.68rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:.04em;
+}
+.badge-trend{background:#3b82f620;color:#60a5fa}
+.badge-risk{background:#ef444420;color:#f87171}
+.badge-opportunity{background:#22c55e20;color:#4ade80}
+.badge-pattern{background:#8b5cf620;color:#a78bfa}
+.badge-anomaly{background:#f9731620;color:#fb923c}
+.badge-recommendation{background:#06b6d420;color:#22d3ee}
+.insight-impact{font-size:.7rem;font-weight:600;text-transform:uppercase;color:#71717a}
+.insight-card h4{font-size:.95rem;font-weight:700;margin-bottom:8px;color:#fafafa}
+.insight-card .detail{font-size:.85rem;color:#a1a1aa;line-height:1.6;margin-bottom:12px}
+.insight-rec{
+  background:#2d2d30;border-radius:8px;padding:10px 14px;
+  font-size:.82rem;color:#fafafa;line-height:1.5;
+}
+.insight-rec strong{color:#f97316;font-size:.72rem;text-transform:uppercase;letter-spacing:.04em}
+
+/* ── Info Panels ─────────────────────────────────── */
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px}
+@media(max-width:760px){.info-grid{grid-template-columns:1fr}}
+.quality-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;
+}
+.quality-item{display:flex;flex-direction:column;gap:3px}
+.quality-item .ql{font-size:.7rem;color:#a1a1aa;text-transform:uppercase;letter-spacing:.04em}
+.quality-item .qv{font-size:1.08rem;font-weight:700;color:#fafafa}
+.nar-list{padding-left:18px;color:#a1a1aa;font-size:.88rem;line-height:1.75}
+.nar-list li::marker{color:#71717a}
+
+/* ── Footer ──────────────────────────────────────── */
+.footer{
+  margin-top:56px;padding-top:20px;border-top:1px solid #3f3f46;
+  display:flex;justify-content:space-between;align-items:center;
+  color:#71717a;font-size:.75rem;
+}
+.print-btn{
+  background:#27272a;border:1px solid #3f3f46;border-radius:8px;
+  padding:6px 16px;color:#a1a1aa;font-size:.78rem;cursor:pointer;
+  transition:all .15s;
+}
+.print-btn:hover{border-color:#f97316;color:#f97316}
+
+/* ── Print Styles ────────────────────────────────── */
+@media print{
+  body{background:#fff!important;color:#000!important}
+  .card,.chart-card,.kpi-card,.model-card,.insight-card,.summary-card{
+    background:#fff!important;border:1px solid #ddd!important;color:#000!important;
+    box-shadow:none!important;
+  }
+  .no-print{display:none!important}
+  .header h1{-webkit-text-fill-color:#000;color:#000}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <h1>Data Analysis Dashboard</h1>
+    <div class="subtitle">
+      400 rows &middot; 4 columns &middot;
+      0.0 MB
+    </div>
+    <span class="theme-badge">Marketing &middot; Sunset Vibrant Theme</span>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:#6366f120">📊</div>
+      <div><h2>Key Metrics</h2></div>
+    </div>
+    <div class="kpi-row">
+        <div class="kpi-card">
+          <span class="kpi-label">Total Records</span>
+          <span class="kpi-value">400</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Avg ADMIT</span>
+          <span class="kpi-value">0.32</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Avg GRE</span>
+          <span class="kpi-value">587.70</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Avg GPA</span>
+          <span class="kpi-value">3.39</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Total ADMIT</span>
+          <span class="kpi-value">127.00</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Max ADMIT</span>
+          <span class="kpi-value">1.00</span>
+        </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:#3b82f620">📈</div>
+      <div><h2>Primary Analysis</h2><div class="section-subtitle">Interactive charts — hover, zoom, and click to explore</div></div>
+    </div>
+    <div class="chart-grid-2"><div class="chart-card"><div>                            <div id="d2d70fb1-c4fc-45f5-a4e0-75e6fbdb8781" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script type="text/javascript">                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("d2d70fb1-c4fc-45f5-a4e0-75e6fbdb8781")) {                    Plotly.newPlot(                        "d2d70fb1-c4fc-45f5-a4e0-75e6fbdb8781",                        [{"bingroup":"x","hovertemplate":"ADMIT=%{x}\u003cbr\u003ecount=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"","marker":{"color":"#636efa","opacity":0.85,"pattern":{"shape":""}},"name":"","nbinsx":50,"orientation":"v","showlegend":false,"x":{"dtype":"i1","bdata":"AAEBAQABAQABAAAAAQABAAAAAAEAAQAAAQEBAQEAAAAAAQAAAAABAQABAQAAAQEAAAAAAAABAAEAAAAAAQAAAQAAAAAAAAAAAAAAAAABAAEAAAAAAQAAAAABAAEAAAEAAAAAAAAAAAABAQEAAAAAAAAAAAABAAEAAQEAAAAAAQAAAAEAAAAAAAAAAAEAAQAAAAAAAAEAAQABAAABAAEAAAAAAQAAAAAAAAAAAAABAAEAAQAAAAAAAQAAAAAAAAEAAAABAAABAAAAAQEAAQEAAQAAAAAAAAEBAAEAAQAAAQAAAQAAAAEAAAAAAQABAAAAAAEBAAAAAAAAAAAAAQEBAAEBAAAAAAEBAQAAAQEAAQABAAABAAEBAQAAAAABAAEBAAABAAAAAAAAAAAAAAEBAQAAAQAAAAAAAAEAAQEBAQAAAAAAAAAAAQAAAAAAAAEBAAAAAQABAAAAAAAAAAABAAEAAQEAAAEAAQEAAAEAAAAAAAEBAQEAAAABAAAAAQAAAQABAAAAAQEBAQEAAAAAAA=="},"xaxis":"x","yaxis":"y","type":"histogram"}],                        {"template":{"data":{"barpolar":[{"marker":{"line":{"color":"rgb(17,17,17)","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"bar":[{"error_x":{"color":"#f2f5fa"},"error_y":{"color":"#f2f5fa"},"marker":{"line":{"color":"rgb(17,17,17)","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"carpet":[{"aaxis":{"endlinecolor":"#A2B1C6","gridcolor":"#506784","linecolor":"#506784","minorgridcolor":"#506784","startlinecolor":"#A2B1C6"},"baxis":{"endlinecolor":"#A2B1C6","gridcolor":"#506784","linecolor":"#506784","minorgridcolor":"#506784","startlinecolor":"#A2B1C6"},"type":"carpet"}],"choropleth":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"choropleth"}],"contourcarpet":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"contourcarpet"}],"contour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"contour"}],"heatmap":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"heatmap"}],"histogram2dcontour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2dcontour"}],"histogram2d":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2d"}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"mesh3d":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"mesh3d"}],"parcoords":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"parcoords"}],"pie":[{"automargin":true,"type":"pie"}],"scatter3d":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatter3d"}],"scattercarpet":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattercarpet"}],"scattergeo":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattergeo"}],"scattergl":[{"marker":{"line":{"color":"#283442"}},"type":"scattergl"}],"scattermapbox":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattermapbox"}],"scattermap":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattermap"}],"scatterpolargl":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolargl"}],"scatterpolar":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolar"}],"scatter":[{"marker":{"line":{"color":"#283442"}},"type":"scatter"}],"scatterternary":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterternary"}],"surface":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"surface"}],"table":[{"cells":{"fill":{"color":"#506784"},"line":{"color":"rgb(17,17,17)"}},"header":{"fill":{"color":"#2a3f5f"},"line":{"color":"rgb(17,17,17)"}},"type":"table"}]},"layout":{"annotationdefaults":{"arrowcolor":"#f2f5fa","arrowhead":0,"arrowwidth":1},"autotypenumbers":"strict","coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]],"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]},"colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#f2f5fa"},"geo":{"bgcolor":"rgb(17,17,17)","lakecolor":"rgb(17,17,17)","landcolor":"rgb(17,17,17)","showlakes":true,"showland":true,"subunitcolor":"#506784"},"hoverlabel":{"align":"left"},"hovermode":"closest","mapbox":{"style":"dark"},"paper_bgcolor":"rgb(17,17,17)","plot_bgcolor":"rgb(17,17,17)","polar":{"angularaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"bgcolor":"rgb(17,17,17)","radialaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""}},"scene":{"xaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","gridwidth":2,"linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3"},"yaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","gridwidth":2,"linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3"},"zaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","gridwidth":2,"linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3"}},"shapedefaults":{"line":{"color":"#f2f5fa"}},"sliderdefaults":{"bgcolor":"#C8D4E3","bordercolor":"rgb(17,17,17)","borderwidth":1,"tickwidth":0},"ternary":{"aaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"baxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"bgcolor":"rgb(17,17,17)","caxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""}},"title":{"x":0.05},"updatemenudefaults":{"bgcolor":"#506784","borderwidth":0},"xaxis":{"automargin":true,"gridcolor":"#283442","linecolor":"#506784","ticks":"","title":{"standoff":15},"zerolinecolor":"#283442","zerolinewidth":2},"yaxis":{"automargin":true,"gridcolor":"#283442","linecolor":"#506784","ticks":"","title":{"standoff":15},"zerolinecolor":"#283442","zerolinewidth":2}}},"xaxis":{"anchor":"y","domain":[0.0,1.0],"title":{"text":"ADMIT","font":{"size":12,"color":"#a1a1aa"}},"showgrid":true,"gridcolor":"rgba(255,255,255,.06)","zeroline":false},"yaxis":{"anchor":"x","domain":[0.0,1.0],"title":{"text":"count","font":{"size":12,"color":"#a1a1aa"}},"showgrid":true,"gridcolor":"rgba(255,255,255,.06)","zeroline":false},"legend":{"tracegroupgap":0,"font":{"size":11},"orientation":"h","yanchor":"bottom","y":1.02,"xanchor":"right","x":1},"margin":{"t":56,"l":52,"r":24,"b":48},"barmode":"relative","title":{"font":{"size":15,"color":"#fafafa"},"text":"Distribution of ADMIT","x":0.01,"xanchor":"left"},"font":{"family":"'Inter',system-ui,sans-serif","size":13,"color":"#a1a1aa"},"paper_bgcolor":"rgba(0,0,0,0)","plot_bgcolor":"rgba(0,0,0,0)","colorway":["#fb923c","#f472b6","#a78bfa","#facc15","#34d399","#38bdf8","#e879f9","#f87171"]},                        {"responsive": true}                    )                };            </script>        </div></div>
+<div class="chart-card"><div>                            <div id="73e7aa46-b258-4b72-a0c7-baf19cb7bcc8" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script type="text/javascript">                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("73e7aa46-b258-4b72-a0c7-baf19cb7bcc8")) {                    Plotly.newPlot(                        "73e7aa46-b258-4b72-a0c7-baf19cb7bcc8",                        [{"hovertemplate":"ADMIT=%{x}\u003cbr\u003eGRE=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"","marker":{"color":"#636efa","opacity":0.6,"symbol":"circle"},"mode":"markers","name":"","orientation":"v","showlegend":false,"x":{"dtype":"i1","bdata":"AAEBAQABAQABAAAAAQABAAAAAAEAAQAAAQEBAQEAAAAAAQAAAAABAQABAQAAAQEAAAAAAAABAAEAAAAAAQAAAQAAAAAAAAAAAAAAAAABAAEAAAAAAQAAAAABAAEAAAEAAAAAAAAAAAABAQEAAAAAAAAAAAABAAEAAQEAAAAAAQAAAAEAAAAAAAAAAAEAAQAAAAAAAAEAAQABAAABAAEAAAAAAQAAAAAAAAAAAAABAAEAAQAAAAAAAQAAAAAAAAEAAAABAAABAAAAAQEAAQEAAQAAAAAAAAEBAAEAAQAAAQAAAQAAAAEAAAAAAQABAAAAAAEBAAAAAAAAAAAAAQEBAAEBAAAAAAEBAQAAAQEAAQABAAABAAEBAQAAAAABAAEBAAABAAAAAAAAAAAAAAEBAQAAAQAAAAAAAAEAAQEBAQAAAAAAAAAAAQAAAAAAAAEBAAAAAQABAAAAAAAAAAABAAEAAQEAAAEAAQEAAAEAAAAAAAEBAQEAAAABAAAAAQAAAQABAAAAAQEBAQEAAAAAAA=="},"xaxis":"x","y":{"dtype":"i2","bdata":"fAGUAiADgAIIAvgCMAKQARwCvAIgA7gB+AK8ArwC4AEMA2gBIAMcAvQBlAJYAqgC+AIgA2wCCAIMAwgCHAL4AlgCIANoAZABRAIIAvQBCAIwAkQCWAL0AbwCzAFEAvQBuAGQAYACuAHkAqgClALkAjACfAGQAVgCbAIwAoACqAJEAlgC5AJsAkQCIAOAAiwB4AFEAtAC0AIwAiADHAJsArwCbAL0AXwB9AEIAlgCWAK8ApQCvALQAiADRAKUApQCgALgAbwCkAFUAUQCfAEcApQC5AK8AuABkAHgAagCpAFoAVgC0AJsArgBvAIgA1QBCALgAQgC9AHQAhwCWALkAhwCzAFsAoACRAL0ATAC9AEwArwCbAJYAoACvAJsAkQCRAJ8AeABMALgAeQCIAOQAYACRAJsAkQCMALgAZQCvAJYAoACvAIIAkQCvAK4AdAC9AFYApABHAKoAiAD9AFsAggCbAJsAiwBbAL0AbwCHAL0ASADMAJEAjAC9AGAAiADgAJ8AVgCMAKUApABWAJEAiADRAK8AqQBWAIMA+QCgAIcAkQC5AJEAswBgAJYApQCVAHMAcwBMAIcAqgC4AEgAyAD0AJsAhwC4AHQAkQCWAJ8AaQBIANsApQC4AH0AbwCuAEIAqgCbAIcAiADqAK4AagCgAKUAmwCCAIcAuQCgAIIAmwCCAKAAqgCuAEIAmwCCAJ8ATACWAKoAvQBgAIcAqgClAIIAlgCzAFEAqgClAKUAmgBlAIIArgBWAIgA5QCIAOkAWwCIAOoAiAD4AEIAjACzAEcAtACgAKUApABqALcAEQCHAJEAhwCuAEwApQClAIIAhwCLAFUAQwD4AEcAswBzAH0AaQBCAKoAqgCMAJEAvQB5AKUAqQBMALMAWwCCAJsAhwClAL0ATAC9AFEAggC9AFYAkQCkAFsAgwDbAJEArwCHAL4ArwC0AIwAtACCAIcAqgCzAEwAuABzAFsAkQCIAMcAqgCqAJsAjACMAJsAiADgAIcArwCHAIcApQC4AGkAeQCRAKAAoACIAOUAlgCbALMAWwCMALMAbwCWAI="},"yaxis":"y","type":"scatter"}],                        {"template":{"data":{"barpolar":[{"marker":{"line":{"color":"rgb(17,17,17)","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"bar":[{"error_x":{"color":"#f2f5fa"},"error_y":{"color":"#f2f5fa"},"marker":{"line":{"color":"rgb(17,17,17)","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"carpet":[{"aaxis":{"endlinecolor":"#A2B1C6","gridcolor":"#506784","linecolor":"#506784","minorgridcolor":"#506784","startlinecolor":"#A2B1C6"},"baxis":{"endlinecolor":"#A2B1C6","gridcolor":"#506784","linecolor":"#506784","minorgridcolor":"#506784","startlinecolor":"#A2B1C6"},"type":"carpet"}],"choropleth":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"choropleth"}],"contourcarpet":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"contourcarpet"}],"contour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"contour"}],"heatmap":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"heatmap"}],"histogram2dcontour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2dcontour"}],"histogram2d":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2d"}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"mesh3d":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"mesh3d"}],"parcoords":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"parcoords"}],"pie":[{"automargin":true,"type":"pie"}],"scatter3d":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatter3d"}],"scattercarpet":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattercarpet"}],"scattergeo":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattergeo"}],"scattergl":[{"marker":{"line":{"color":"#283442"}},"type":"scattergl"}],"scattermapbox":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattermapbox"}],"scattermap":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattermap"}],"scatterpolargl":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolargl"}],"scatterpolar":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolar"}],"scatter":[{"marker":{"line":{"color":"#283442"}},"type":"scatter"}],"scatterternary":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterternary"}],"surface":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"surface"}],"table":[{"cells":{"fill":{"color":"#506784"},"line":{"color":"rgb(17,17,17)"}},"header":{"fill":{"color":"#2a3f5f"},"line":{"color":"rgb(17,17,17)"}},"type":"table"}]},"layout":{"annotationdefaults":{"arrowcolor":"#f2f5fa","arrowhead":0,"arrowwidth":1},"autotypenumbers":"strict","coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]],"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]},"colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#f2f5fa"},"geo":{"bgcolor":"rgb(17,17,17)","lakecolor":"rgb(17,17,17)","landcolor":"rgb(17,17,17)","showlakes":true,"showland":true,"subunitcolor":"#506784"},"hoverlabel":{"align":"left"},"hovermode":"closest","mapbox":{"style":"dark"},"paper_bgcolor":"rgb(17,17,17)","plot_bgcolor":"rgb(17,17,17)","polar":{"angularaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"bgcolor":"rgb(17,17,17)","radialaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""}},"scene":{"xaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","gridwidth":2,"linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3"},"yaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","gridwidth":2,"linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3"},"zaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","gridwidth":2,"linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3"}},"shapedefaults":{"line":{"color":"#f2f5fa"}},"sliderdefaults":{"bgcolor":"#C8D4E3","bordercolor":"rgb(17,17,17)","borderwidth":1,"tickwidth":0},"ternary":{"aaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"baxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"bgcolor":"rgb(17,17,17)","caxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""}},"title":{"x":0.05},"updatemenudefaults":{"bgcolor":"#506784","borderwidth":0},"xaxis":{"automargin":true,"gridcolor":"#283442","linecolor":"#506784","ticks":"","title":{"standoff":15},"zerolinecolor":"#283442","zerolinewidth":2},"yaxis":{"automargin":true,"gridcolor":"#283442","linecolor":"#506784","ticks":"","title":{"standoff":15},"zerolinecolor":"#283442","zerolinewidth":2}}},"xaxis":{"anchor":"y","domain":[0.0,1.0],"title":{"text":"ADMIT","font":{"size":12,"color":"#a1a1aa"}},"showgrid":true,"gridcolor":"rgba(255,255,255,.06)","zeroline":false},"yaxis":{"anchor":"x","domain":[0.0,1.0],"title":{"text":"GRE","font":{"size":12,"color":"#a1a1aa"}},"showgrid":true,"gridcolor":"rgba(255,255,255,.06)","zeroline":false},"legend":{"tracegroupgap":0,"font":{"size":11},"orientation":"h","yanchor":"bottom","y":1.02,"xanchor":"right","x":1},"margin":{"t":56,"l":52,"r":24,"b":48},"title":{"font":{"size":15,"color":"#fafafa"},"text":"ADMIT vs GRE","x":0.01,"xanchor":"left"},"font":{"family":"'Inter',system-ui,sans-serif","size":13,"color":"#a1a1aa"},"paper_bgcolor":"rgba(0,0,0,0)","plot_bgcolor":"rgba(0,0,0,0)","colorway":["#fb923c","#f472b6","#a78bfa","#facc15","#34d399","#38bdf8","#e879f9","#f87171"]},                        {"responsive": true}                    )                };            </script>        </div></div></div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:#eab30822">⚠️</div>
+      <div><h2>Outlier Analysis</h2><div class="section-subtitle">Statistical outlier detection using IQR (1.5×) and Z-score (&gt;3σ) methods</div></div>
+    </div>
+    
+    <div class="summary-row">
+      <div class="summary-card">
+        <span class="sv">5</span>
+        <span class="sl">Total Outlier Points</span>
+      </div>
+      <div class="summary-card">
+        <span class="sv">1.2%</span>
+        <span class="sl">Rows Affected</span>
+      </div>
+      <div class="summary-card">
+        <span class="sv">2</span>
+        <span class="sl">Columns with Outliers</span>
+      </div>
+    </div>
+    <div class="chart-grid-2"><div class="chart-card"><div>                            <div id="4daeb830-33f6-4d5a-85bf-db525c50bd18" class="plotly-graph-div" style="height:360px; width:100%;"></div>            <script type="text/javascript">                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("4daeb830-33f6-4d5a-85bf-db525c50bd18")) {                    Plotly.newPlot(                        "4daeb830-33f6-4d5a-85bf-db525c50bd18",                        [{"boxpoints":"outliers","jitter":0.3,"line":{"color":"#f97316"},"marker":{"color":"#f97316","opacity":0.7,"outliercolor":"#ef4444","size":4},"name":"GRE","pointpos":-1.8,"y":{"dtype":"i2","bdata":"fAGUAiADgAIIAvgCMAKQARwCvAIgA7gB+AK8ArwC4AEMA2gBIAMcAvQBlAJYAqgC+AIgA2wCCAIMAwgCHAL4AlgCIANoAZABRAIIAvQBCAIwAkQCWAL0AbwCzAFEAvQBuAGQAYACuAHkAqgClALkAjACfAGQAVgCbAIwAoACqAJEAlgC5AJsAkQCIAOAAiwB4AFEAtAC0AIwAiADHAJsArwCbAL0AXwB9AEIAlgCWAK8ApQCvALQAiADRAKUApQCgALgAbwCkAFUAUQCfAEcApQC5AK8AuABkAHgAagCpAFoAVgC0AJsArgBvAIgA1QBCALgAQgC9AHQAhwCWALkAhwCzAFsAoACRAL0ATAC9AEwArwCbAJYAoACvAJsAkQCRAJ8AeABMALgAeQCIAOQAYACRAJsAkQCMALgAZQCvAJYAoACvAIIAkQCvAK4AdAC9AFYApABHAKoAiAD9AFsAggCbAJsAiwBbAL0AbwCHAL0ASADMAJEAjAC9AGAAiADgAJ8AVgCMAKUApABWAJEAiADRAK8AqQBWAIMA+QCgAIcAkQC5AJEAswBgAJYApQCVAHMAcwBMAIcAqgC4AEgAyAD0AJsAhwC4AHQAkQCWAJ8AaQBIANsApQC4AH0AbwCuAEIAqgCbAIcAiADqAK4AagCgAKUAmwCCAIcAuQCgAIIAmwCCAKAAqgCuAEIAmwCCAJ8ATACWAKoAvQBgAIcAqgClAIIAlgCzAFEAqgClAKUAmgBlAIIArgBWAIgA5QCIAOkAWwCIAOoAiAD4AEIAjACzAEcAtACgAKUApABqALcAEQCHAJEAhwCuAEwApQClAIIAhwCLAFUAQwD4AEcAswBzAH0AaQBCAKoAqgCMAJEAvQB5AKUAqQBMALMAWwCCAJsAhwClAL0ATAC9AFEAggC9AFYAkQCkAFsAgwDbAJEArwCHAL4ArwC0AIwAtACCAIcAqgCzAEwAuABzAFsAkQCIAMcAqgCqAJsAjACMAJsAiADgAIcArwCHAIcApQC4AGkAeQCRAKAAoACIAOUAlgCbALMAWwCMALMAbwCWAI="},"type":"box"}],                        {"template":{"data":{"barpolar":[{"marker":{"line":{"color":"rgb(17,17,17)","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"bar":[{"error_x":{"color":"#f2f5fa"},"error_y":{"color":"#f2f5fa"},"marker":{"line":{"color":"rgb(17,17,17)","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"carpet":[{"aaxis":{"endlinecolor":"#A2B1C6","gridcolor":"#506784","linecolor":"#506784","minorgridcolor":"#506784","startlinecolor":"#A2B1C6"},"baxis":{"endlinecolor":"#A2B1C6","gridcolor":"#506784","linecolor":"#506784","minorgridcolor":"#506784","startlinecolor":"#A2B1C6"},"type":"carpet"}],"choropleth":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"choropleth"}],"contourcarpet":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"contourcarpet"}],"contour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"contour"}],"heatmap":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"heatmap"}],"histogram2dcontour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2dcontour"}],"histogram2d":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2d"}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"mesh3d":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"mesh3d"}],"parcoords":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"parcoords"}],"pie":[{"automargin":true,"type":"pie"}],"scatter3d":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatter3d"}],"scattercarpet":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattercarpet"}],"scattergeo":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattergeo"}],"scattergl":[{"marker":{"line":{"color":"#283442"}},"type":"scattergl"}],"scattermapbox":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattermapbox"}],"scattermap":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattermap"}],"scatterpolargl":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolargl"}],"scatterpolar":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolar"}],"scatter":[{"marker":{"line":{"color":"#283442"}},"type":"scatter"}],"scatterternary":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterternary"}],"surface":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"surface"}],"table":[{"cells":{"fill":{"color":"#506784"},"line":{"color":"rgb(17,17,17)"}},"header":{"fill":{"color":"#2a3f5f"},"line":{"color":"rgb(17,17,17)"}},"type":"table"}]},"layout":{"annotationdefaults":{"arrowcolor":"#f2f5fa","arrowhead":0,"arrowwidth":1},"autotypenumbers":"strict","coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]],"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]},"colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#f2f5fa"},"geo":{"bgcolor":"rgb(17,17,17)","lakecolor":"rgb(17,17,17)","landcolor":"rgb(17,17,17)","showlakes":true,"showland":true,"subunitcolor":"#506784"},"hoverlabel":{"align":"left"},"hovermode":"closest","mapbox":{"style":"dark"},"paper_bgcolor":"rgb(17,17,17)","plot_bgcolor":"rgb(17,17,17)","polar":{"angularaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"bgcolor":"rgb(17,17,17)","radialaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""}},"scene":{"xaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","gridwidth":2,"linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3"},"yaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","gridwidth":2,"linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3"},"zaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","gridwidth":2,"linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3"}},"shapedefaults":{"line":{"color":"#f2f5fa"}},"sliderdefaults":{"bgcolor":"#C8D4E3","bordercolor":"rgb(17,17,17)","borderwidth":1,"tickwidth":0},"ternary":{"aaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"baxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"bgcolor":"rgb(17,17,17)","caxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""}},"title":{"x":0.05},"updatemenudefaults":{"bgcolor":"#506784","borderwidth":0},"xaxis":{"automargin":true,"gridcolor":"#283442","linecolor":"#506784","ticks":"","title":{"standoff":15},"zerolinecolor":"#283442","zerolinewidth":2},"yaxis":{"automargin":true,"gridcolor":"#283442","linecolor":"#506784","ticks":"","title":{"standoff":15},"zerolinecolor":"#283442","zerolinewidth":2}}},"shapes":[{"line":{"color":"#eab308","dash":"dash"},"type":"line","x0":0,"x1":1,"xref":"x domain","y0":870.0,"y1":870.0,"yref":"y"},{"line":{"color":"#eab308","dash":"dash"},"type":"line","x0":0,"x1":1,"xref":"x domain","y0":310.0,"y1":310.0,"yref":"y"},{"line":{"color":"#22c55e","dash":"dot"},"type":"line","x0":0,"x1":1,"xref":"x domain","y0":587.7,"y1":587.7,"yref":"y"}],"annotations":[{"font":{"color":"#71717a","size":10},"showarrow":false,"text":"Upper: 870.0","x":1,"xanchor":"right","xref":"x domain","y":870.0,"yanchor":"bottom","yref":"y"},{"font":{"color":"#71717a","size":10},"showarrow":false,"text":"Lower: 310.0","x":1,"xanchor":"right","xref":"x domain","y":310.0,"yanchor":"bottom","yref":"y"},{"font":{"color":"#71717a","size":10},"showarrow":false,"text":"Mean: 587.7","x":1,"xanchor":"right","xref":"x domain","y":587.7,"yanchor":"bottom","yref":"y"}],"title":{"font":{"size":15,"color":"#fafafa"},"text":"GRE \u2014 4 outliers (1.0%)","x":0.01,"xanchor":"left"},"font":{"family":"'Inter',system-ui,sans-serif","size":13,"color":"#a1a1aa"},"margin":{"l":52,"r":24,"t":56,"b":48},"legend":{"font":{"size":11},"orientation":"h","yanchor":"bottom","y":1.02,"xanchor":"right","x":1},"paper_bgcolor":"rgba(0,0,0,0)","plot_bgcolor":"rgba(0,0,0,0)","colorway":["#fb923c","#f472b6","#a78bfa","#facc15","#34d399","#38bdf8","#e879f9","#f87171"],"xaxis":{"title":{"font":{"size":12,"color":"#a1a1aa"}},"showgrid":true,"gridcolor":"rgba(255,255,255,.06)","zeroline":false},"yaxis":{"title":{"font":{"size":12,"color":"#a1a1aa"}},"showgrid":true,"gridcolor":"rgba(255,255,255,.06)","zeroline":false},"height":360,"showlegend":false},                        {"responsive": true}                    )                };            </script>        </div></div>
+<div class="chart-card"><div>                            <div id="fd24e353-a3c1-49a0-9e44-2597ca62f838" class="plotly-graph-div" style="height:360px; width:100%;"></div>            <script type="text/javascript">                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("fd24e353-a3c1-49a0-9e44-2597ca62f838")) {                    Plotly.newPlot(                        "fd24e353-a3c1-49a0-9e44-2597ca62f838",                        [{"boxpoints":"outliers","jitter":0.3,"line":{"color":"#f97316"},"marker":{"color":"#f97316","opacity":0.7,"outliercolor":"#ef4444","size":4},"name":"GPA","pointpos":-1.8,"y":{"dtype":"f8","bdata":"HbX8n0fhDEBu5vX\u002fKFwNQAAAAAAAABBA02z4vx6FCUCsVwjgo3AHQAAAAAAAAAhAnHn9PwrXB0CSGQoA16MIQONKA2C4HgtAbub1\u002fyhcD0AAAAAAAAAQQHVkDWCPwglAAAAAAAAAEECSGQoA16MIQAAAAAAAABBA02z4vx6FC0BbJg+AwvUOQC2TB0DhegRAAAAAAAAADkAtkwdA4XoOQG7m9f8oXAlApdnwfz0KDUBUqPcfXI8GQNNs+L8ehQlA9p8MwMzMCkBI0QUgrkcNQB21\u002fJ9H4QxA2uoPIIXrDUB1ZA1gj8IJQMkMBYDrUQpAi5vyn3A9DkD2nwzAzMwKQApg8z8zMwtAAAAAAAAAEEDjSgNguB4JQO8h9V9mZghAAAAAAAAACkAKYPM\u002fMzMHQKXZ8H89CglArFcI4KNwBUBu5vX\u002fKFwDQFSo9x9cjwpACmDzPzMzCUAtkwdA4XoKQNNs+L8ehQdAEd4KoJmZC0A38\u002fp\u002fFK4LQHVkDWCPwgdAnHn9PwrXA0D2nwzAzMwKQB21\u002fJ9H4Q5Apdnwfz0KCUBbJg+AwvUKQGSGAsD1KApAuC7631G4CkAAAAAAAAAQQNNs+L8ehQlA02z4vx6FB0AKYPM\u002fMzMNQFSo9x9cjwZArFcI4KNwCUBUqPcfXI8KQG7m9f8oXA1A9p8MwMzMDkAAAAAAAAAQQLgu+t9RuAxAWyYPgML1DEDvIfVfZmYKQNNs+L8ehQ1AnHn9PwrXDUAAAAAAAAAQQG7m9f8oXAdA40oDYLgeC0AAAAAAAAAQQBHeCqCZmQtAAAAAAAAAEEAdtfyfR+EKQAAAAAAAABBAWyYPgML1CEAAAAAAAAAQQApg8z8zMwdAVKj3H1yPCEA38\u002fp\u002fFK4FQEjRBSCuRwdA9p8MwMzMDECcef0\u002fCtcHQFSo9x9cjwpAnHn9PwrXC0CLm\u002fKfcD0KQAAAAAAAABBAkhkKANejDkDjSgNguB4NQApg8z8zMw9ArFcI4KNwB0DTbPi\u002fHoULQJIZCgDXowpAZIYCwPUoDEBUqPcfXI8MQKXZ8H89CgdALZMHQOF6CkAKYPM\u002fMzMJQFSo9x9cjwxAkhkKANejCkDTbPi\u002fHoUPQBHeCqCZmQ9AdWQNYI\u002fCB0AtkwdA4XoMQKXZ8H89CglArFcI4KNwB0AR3gqgmZkLQJIZCgDXowhASNEFIK5HC0AAAAAAAAAIQHVkDWCPwglAuC7631G4DkDa6g8ghesPQBHeCqCZmQtAdWQNYI\u002fCDUAR3gqgmZkNQG7m9f8oXAdA2uoPIIXrDUBu5vX\u002fKFwFQPafDMDMzAZAnHn9PwrXB0Cl2fB\u002fPQoPQKXZ8H89CgtAyQwFgOtRDEDa6g8ghesNQNNs+L8ehQlACmDzPzMzCUBu5vX\u002fKFwJQMkMBYDrUQZACmDzPzMzC0CSGQoA16MIQBHeCqCZmQdAVKj3H1yPDECSGQoA16MKQAAAAAAAABBACmDzPzMzC0CSGQoA16MMQKxXCOCjcA9AZIYCwPUoDEDTbPi\u002fHoUPQApg8z8zMwtACmDzPzMzC0CsVwjgo3ALQApg8z8zMwtAN\u002fP6fxSuBUBI0QUgrkcHQC2TB0DhegpA2uoPIIXrDUCl2fB\u002fPQoLQNNs+L8ehQ9AN\u002fP6fxSuC0DTbPi\u002fHoUNQB21\u002fJ9H4QZAZIYCwPUoBECSGQoA16MMQNrqDyCF6wtAVKj3H1yPDkCl2fB\u002fPQoJQAAAAAAAAAxALZMHQOF6DECcef0\u002fCtcFQO8h9V9mZgpAAAAAAAAAEEDa6g8ghesJQGSGAsD1KA5AAAAAAAAAEEBbJg+AwvUMQD5xEuB6FAxALZMHQOF6BkCcef0\u002fCtcLQKxXCOCjcAtAi5vyn3A9DEBbJg+AwvUKQFsmD4DC9QRAnHn9PwrXCUCSGQoA16MKQD5xEuB6FAhAi5vyn3A9DkCl2fB\u002fPQoPQAAAAAAAABBAuC7631G4DkDJDAWA61EGQPafDMDMzAxAHbX8n0fhDECl2fB\u002fPQoHQFSo9x9cjwhA9p8MwMzMCkDTbPi\u002fHoUHQMkMBYDrUQxAPnES4HoUDkC4LvrfUbgMQHVkDWCPwgtAuC7631G4DEBUqPcfXI8IQJx5\u002fT8K1wlApdnwfz0KDUBkhgLA9SgOQC2TB0DhegpAEd4KoJmZCUAAAAAAAAAQQG7m9f8oXA9A40oDYLgeD0DvIfVfZmYOQMkMBYDrUQxApdnwfz0KDUBI0QUgrkcJQAAAAAAAAAxAuC7631G4CkBkhgLA9SgIQFsmD4DC9QZApdnwfz0KC0AtkwdA4XoMQEjRBSCuRwdACmDzPzMzB0DjSgNguB4NQJx5\u002fT8K1wdAuC7631G4DECLm\u002fKfcD0KQNrqDyCF6w9AZIYCwPUoCEB1ZA1gj8ILQApg8z8zMwdAAAAAAAAADECSGQoA16MMQGSGAsD1KAhArFcI4KNwC0Bu5vX\u002fKFwLQMkMBYDrUQpAi5vyn3A9CkCl2fB\u002fPQoLQG7m9f8oXAVAi5vyn3A9DEDvIfVfZmYIQNrqDyCF6wtAAAAAAAAAEEAdtfyfR+EGQBHeCqCZmQtAPnES4HoUBkAtkwdA4XoOQDfz+n8UrgdAdWQNYI\u002fCCUDJDAWA61EIQEjRBSCuRw9AuC7631G4CkBu5vX\u002fKFwJQONKA2C4Hg1AnHn9PwrXDUAtkwdA4XoKQDfz+n8UrglAAAAAAAAAEEDvIfVfZmYMQGSGAsD1KAxA9p8MwMzMCkDvIfVfZmYKQBHeCqCZmQ9APnES4HoUDEAtkwdA4XoOQB21\u002fJ9H4QhACmDzPzMzCUDTbPi\u002fHoUJQBHeCqCZmQ9ACmDzPzMzD0C4LvrfUbgKQNrqDyCF6wlA40oDYLgeDUA38\u002fp\u002fFK4LQC2TB0DhegZAEd4KoJmZD0CSGQoA16MKQG7m9f8oXA1AVKj3H1yPCkBbJg+AwvUIQJx5\u002fT8K1wdAZIYCwPUoDkCSGQoA16MMQAAAAAAAAAhA40oDYLgeCUDTbPi\u002fHoUPQGSGAsD1KApAEd4KoJmZC0D2nwzAzMwIQONKA2C4HgtALZMHQOF6CkB1ZA1gj8IJQBHeCqCZmQ1ACmDzPzMzCUA+cRLgehQCQBHeCqCZmQtAi5vyn3A9BkAR3gqgmZkNQHVkDWCPwg9A7yH1X2ZmBEAAAAAAAAAKQEjRBSCuRwlAVKj3H1yPCEAAAAAAAAAMQApg8z8zMwtA7yH1X2ZmCkD2nwzAzMwMQApg8z8zMwlAnHn9PwrXD0CSGQoA16MGQDfz+n8UrgtAbub1\u002fyhcCUA+cRLgehQMQKXZ8H89CglAnHn9PwrXB0AAAAAAAAAQQG7m9f8oXA1AZIYCwPUoDkAKYPM\u002fMzMNQDfz+n8UrgtAuC7631G4BkAAAAAAAAAIQKXZ8H89Cg1AN\u002fP6fxSuDUCLm\u002fKfcD0KQONKA2C4HglAkhkKANejDEA+cRLgehQIQNNs+L8ehQVAEd4KoJmZBUAKYPM\u002fMzMPQC2TB0DhegpAnHn9PwrXC0C4LvrfUbgKQKxXCOCjcAdAAAAAAAAAEEC4LvrfUbgMQDfz+n8UrgdArFcI4KNwC0DjSgNguB4NQDfz+n8Urg1ACmDzPzMzCUC4LvrfUbgIQBHeCqCZmQlAdWQNYI\u002fCC0Ccef0\u002fCtcJQApg8z8zMwVAEd4KoJmZD0AtkwdA4XoIQPafDMDMzApAi5vyn3A9CED2nwzAzMwKQO8h9V9mZg5AHbX8n0fhCkD2nwzAzMwGQAAAAAAAABBArFcI4KNwC0BbJg+AwvUIQGSGAsD1KAxAi5vyn3A9DkAtkwdA4XoGQGSGAsD1KApALZMHQOF6CkDTbPi\u002fHoUNQNNs+L8ehQ9AAAAAAAAAEEDa6g8ghesLQONKA2C4HglA02z4vx6FC0AdtfyfR+EKQIub8p9wPQZArFcI4KNwB0Cl2fB\u002fPQoNQAAAAAAAABBA40oDYLgeD0BkhgLA9SgOQD5xEuB6FA5Abub1\u002fyhcA0BbJg+AwvUKQIub8p9wPQ5A2uoPIIXrC0Cl2fB\u002fPQoNQAAAAAAAABBAWyYPgML1CEAR3gqgmZkFQApg8z8zMw1A2uoPIIXrC0A+cRLgehQMQAAAAAAAABBAWyYPgML1BEBkhgLA9SgIQB21\u002fJ9H4Q5AHbX8n0fhCkBu5vX\u002fKFwJQD5xEuB6FAxA7yH1X2ZmCECl2fB\u002fPQoPQKXZ8H89CgtAAAAAAAAADkDa6g8ghesPQAAAAAAAABBAyQwFgOtRCECl2fB\u002fPQoFQApg8z8zMw1A40oDYLgeD0A="},"type":"box"}],                        {"template":{"data":{"barpolar":[{"marker":{"line":{"color":"rgb(17,17,17)","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"bar":[{"error_x":{"color":"#f2f5fa"},"error_y":{"color":"#f2f5fa"},"marker":{"line":{"color":"rgb(17,17,17)","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"carpet":[{"aaxis":{"endlinecolor":"#A2B1C6","gridcolor":"#506784","linecolor":"#506784","minorgridcolor":"#506784","startlinecolor":"#A2B1C6"},"baxis":{"endlinecolor":"#A2B1C6","gridcolor":"#506784","linecolor":"#506784","minorgridcolor":"#506784","startlinecolor":"#A2B1C6"},"type":"carpet"}],"choropleth":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"choropleth"}],"contourcarpet":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"contourcarpet"}],"contour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"contour"}],"heatmap":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"heatmap"}],"histogram2dcontour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2dcontour"}],"histogram2d":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2d"}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"mesh3d":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"mesh3d"}],"parcoords":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"parcoords"}],"pie":[{"automargin":true,"type":"pie"}],"scatter3d":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatter3d"}],"scattercarpet":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattercarpet"}],"scattergeo":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattergeo"}],"scattergl":[{"marker":{"line":{"color":"#283442"}},"type":"scattergl"}],"scattermapbox":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattermapbox"}],"scattermap":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattermap"}],"scatterpolargl":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolargl"}],"scatterpolar":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolar"}],"scatter":[{"marker":{"line":{"color":"#283442"}},"type":"scatter"}],"scatterternary":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterternary"}],"surface":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"surface"}],"table":[{"cells":{"fill":{"color":"#506784"},"line":{"color":"rgb(17,17,17)"}},"header":{"fill":{"color":"#2a3f5f"},"line":{"color":"rgb(17,17,17)"}},"type":"table"}]},"layout":{"annotationdefaults":{"arrowcolor":"#f2f5fa","arrowhead":0,"arrowwidth":1},"autotypenumbers":"strict","coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]],"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]},"colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#f2f5fa"},"geo":{"bgcolor":"rgb(17,17,17)","lakecolor":"rgb(17,17,17)","landcolor":"rgb(17,17,17)","showlakes":true,"showland":true,"subunitcolor":"#506784"},"hoverlabel":{"align":"left"},"hovermode":"closest","mapbox":{"style":"dark"},"paper_bgcolor":"rgb(17,17,17)","plot_bgcolor":"rgb(17,17,17)","polar":{"angularaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"bgcolor":"rgb(17,17,17)","radialaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""}},"scene":{"xaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","gridwidth":2,"linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3"},"yaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","gridwidth":2,"linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3"},"zaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","gridwidth":2,"linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3"}},"shapedefaults":{"line":{"color":"#f2f5fa"}},"sliderdefaults":{"bgcolor":"#C8D4E3","bordercolor":"rgb(17,17,17)","borderwidth":1,"tickwidth":0},"ternary":{"aaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"baxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"bgcolor":"rgb(17,17,17)","caxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""}},"title":{"x":0.05},"updatemenudefaults":{"bgcolor":"#506784","borderwidth":0},"xaxis":{"automargin":true,"gridcolor":"#283442","linecolor":"#506784","ticks":"","title":{"standoff":15},"zerolinecolor":"#283442","zerolinewidth":2},"yaxis":{"automargin":true,"gridcolor":"#283442","linecolor":"#506784","ticks":"","title":{"standoff":15},"zerolinecolor":"#283442","zerolinewidth":2}}},"shapes":[{"line":{"color":"#eab308","dash":"dash"},"type":"line","x0":0,"x1":1,"xref":"x domain","y0":4.48,"y1":4.48,"yref":"y"},{"line":{"color":"#eab308","dash":"dash"},"type":"line","x0":0,"x1":1,"xref":"x domain","y0":2.32,"y1":2.32,"yref":"y"},{"line":{"color":"#22c55e","dash":"dot"},"type":"line","x0":0,"x1":1,"xref":"x domain","y0":3.3899,"y1":3.3899,"yref":"y"}],"annotations":[{"font":{"color":"#71717a","size":10},"showarrow":false,"text":"Upper: 4.5","x":1,"xanchor":"right","xref":"x domain","y":4.48,"yanchor":"bottom","yref":"y"},{"font":{"color":"#71717a","size":10},"showarrow":false,"text":"Lower: 2.3","x":1,"xanchor":"right","xref":"x domain","y":2.32,"yanchor":"bottom","yref":"y"},{"font":{"color":"#71717a","size":10},"showarrow":false,"text":"Mean: 3.4","x":1,"xanchor":"right","xref":"x domain","y":3.3899,"yanchor":"bottom","yref":"y"}],"title":{"font":{"size":15,"color":"#fafafa"},"text":"GPA \u2014 1 outliers (0.2%)","x":0.01,"xanchor":"left"},"font":{"family":"'Inter',system-ui,sans-serif","size":13,"color":"#a1a1aa"},"margin":{"l":52,"r":24,"t":56,"b":48},"legend":{"font":{"size":11},"orientation":"h","yanchor":"bottom","y":1.02,"xanchor":"right","x":1},"paper_bgcolor":"rgba(0,0,0,0)","plot_bgcolor":"rgba(0,0,0,0)","colorway":["#fb923c","#f472b6","#a78bfa","#facc15","#34d399","#38bdf8","#e879f9","#f87171"],"xaxis":{"title":{"font":{"size":12,"color":"#a1a1aa"}},"showgrid":true,"gridcolor":"rgba(255,255,255,.06)","zeroline":false},"yaxis":{"title":{"font":{"size":12,"color":"#a1a1aa"}},"showgrid":true,"gridcolor":"rgba(255,255,255,.06)","zeroline":false},"height":360,"showlegend":false},                        {"responsive": true}                    )                };            </script>        </div></div></div>
+    
+    <div class="card outlier-table" style="margin-top:16px">
+      <h3>Outlier Details by Column</h3>
+      <table>
+        <tr><th>Column</th><th>Count</th><th>%</th><th>IQR Bounds</th><th>Detection Method</th></tr>
+        <tr>
+          <td><strong>GRE</strong></td>
+          <td>4</td>
+          <td>1.0%</td>
+          <td style="font-family:monospace;font-size:.8rem">[310.00, 870.00]</td>
+          <td>IQR: 4 &nbsp;|&nbsp; Z: 1</td>
+        </tr><tr>
+          <td><strong>GPA</strong></td>
+          <td>1</td>
+          <td>0.2%</td>
+          <td style="font-family:monospace;font-size:.8rem">[2.32, 4.48]</td>
+          <td>IQR: 1 &nbsp;|&nbsp; Z: 0</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:#ec489922">🔗</div>
+      <div>
+        <h2>Correlation &amp; Feature Analysis</h2>
+        <div class="section-subtitle">4 of 4 numeric features analyzed (top by variance)</div>
+      </div>
+    </div>
+    <div class="chart-grid-2"><div class="chart-card"><div>                            <div id="7fe84cff-0777-48eb-ad9e-72390cdee074" class="plotly-graph-div" style="height:400px; width:100%;"></div>            <script type="text/javascript">                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("7fe84cff-0777-48eb-ad9e-72390cdee074")) {                    Plotly.newPlot(                        "7fe84cff-0777-48eb-ad9e-72390cdee074",                        [{"colorbar":{"tickfont":{"color":"#a1a1aa","size":10},"title":{"font":{"color":"#a1a1aa","size":11},"text":"r"}},"colorscale":[[0.0,"rgb(5,48,97)"],[0.1,"rgb(33,102,172)"],[0.2,"rgb(67,147,195)"],[0.3,"rgb(146,197,222)"],[0.4,"rgb(209,229,240)"],[0.5,"rgb(247,247,247)"],[0.6,"rgb(253,219,199)"],[0.7,"rgb(244,165,130)"],[0.8,"rgb(214,96,77)"],[0.9,"rgb(178,24,43)"],[1.0,"rgb(103,0,31)"]],"hovertemplate":"%{x} \u00d7 %{y}\u003cbr\u003er = %{z:.3f}\u003cextra\u003e\u003c\u002fextra\u003e","text":{"dtype":"f8","bdata":"AAAAAAAA8D+4HoXrUbi+vwrXo3A9Csc\u002fUrgehetR2D+4HoXrUbi+vwAAAAAAAPA\u002fuB6F61G4zr+4HoXrUbiuvwrXo3A9Csc\u002fuB6F61G4zr8AAAAAAADwPwrXo3A9Csc\u002fUrgehetR2D+4HoXrUbiuvwrXo3A9Csc\u002fAAAAAAAA8D8=","shape":"4, 4"},"textfont":{"size":9},"texttemplate":"%{text:.2f}","x":["GRE","RANK","ADMIT","GPA"],"y":["GRE","RANK","ADMIT","GPA"],"z":{"dtype":"f8","bdata":"AAAAAAAA8D9OrJ81Opq\u002fv4DpJ9qKm8c\u002ff6+A38+X2D9OrJ81Opq\u002fvwAAAAAAAPA\u002fhfGJ96sKz78DkEZdf2utv4DpJ9qKm8c\u002fhfGJ96sKz78AAAAAAADwP1ESMtmoz8Y\u002ff6+A38+X2D8DkEZdf2utv1ESMtmoz8Y\u002fAAAAAAAA8D8=","shape":"4, 4"},"zmax":1,"zmid":0,"zmin":-1,"type":"heatmap"}],                        {"template":{"data":{"barpolar":[{"marker":{"line":{"color":"rgb(17,17,17)","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"bar":[{"error_x":{"color":"#f2f5fa"},"error_y":{"color":"#f2f5fa"},"marker":{"line":{"color":"rgb(17,17,17)","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"carpet":[{"aaxis":{"endlinecolor":"#A2B1C6","gridcolor":"#506784","linecolor":"#506784","minorgridcolor":"#506784","startlinecolor":"#A2B1C6"},"baxis":{"endlinecolor":"#A2B1C6","gridcolor":"#506784","linecolor":"#506784","minorgridcolor":"#506784","startlinecolor":"#A2B1C6"},"type":"carpet"}],"choropleth":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"choropleth"}],"contourcarpet":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"contourcarpet"}],"contour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"contour"}],"heatmap":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"heatmap"}],"histogram2dcontour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2dcontour"}],"histogram2d":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2d"}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"mesh3d":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"mesh3d"}],"parcoords":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"parcoords"}],"pie":[{"automargin":true,"type":"pie"}],"scatter3d":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatter3d"}],"scattercarpet":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattercarpet"}],"scattergeo":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattergeo"}],"scattergl":[{"marker":{"line":{"color":"#283442"}},"type":"scattergl"}],"scattermapbox":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattermapbox"}],"scattermap":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattermap"}],"scatterpolargl":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolargl"}],"scatterpolar":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolar"}],"scatter":[{"marker":{"line":{"color":"#283442"}},"type":"scatter"}],"scatterternary":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterternary"}],"surface":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"surface"}],"table":[{"cells":{"fill":{"color":"#506784"},"line":{"color":"rgb(17,17,17)"}},"header":{"fill":{"color":"#2a3f5f"},"line":{"color":"rgb(17,17,17)"}},"type":"table"}]},"layout":{"annotationdefaults":{"arrowcolor":"#f2f5fa","arrowhead":0,"arrowwidth":1},"autotypenumbers":"strict","coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]],"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]},"colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#f2f5fa"},"geo":{"bgcolor":"rgb(17,17,17)","lakecolor":"rgb(17,17,17)","landcolor":"rgb(17,17,17)","showlakes":true,"showland":true,"subunitcolor":"#506784"},"hoverlabel":{"align":"left"},"hovermode":"closest","mapbox":{"style":"dark"},"paper_bgcolor":"rgb(17,17,17)","plot_bgcolor":"rgb(17,17,17)","polar":{"angularaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"bgcolor":"rgb(17,17,17)","radialaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""}},"scene":{"xaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","gridwidth":2,"linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3"},"yaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","gridwidth":2,"linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3"},"zaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","gridwidth":2,"linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3"}},"shapedefaults":{"line":{"color":"#f2f5fa"}},"sliderdefaults":{"bgcolor":"#C8D4E3","bordercolor":"rgb(17,17,17)","borderwidth":1,"tickwidth":0},"ternary":{"aaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"baxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"bgcolor":"rgb(17,17,17)","caxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""}},"title":{"x":0.05},"updatemenudefaults":{"bgcolor":"#506784","borderwidth":0},"xaxis":{"automargin":true,"gridcolor":"#283442","linecolor":"#506784","ticks":"","title":{"standoff":15},"zerolinecolor":"#283442","zerolinewidth":2},"yaxis":{"automargin":true,"gridcolor":"#283442","linecolor":"#506784","ticks":"","title":{"standoff":15},"zerolinecolor":"#283442","zerolinewidth":2}}},"title":{"font":{"size":15,"color":"#fafafa"},"text":"Pearson Correlation Matrix","x":0.01,"xanchor":"left"},"font":{"family":"'Inter',system-ui,sans-serif","size":13,"color":"#a1a1aa"},"margin":{"l":52,"r":24,"t":56,"b":48},"legend":{"font":{"size":11},"orientation":"h","yanchor":"bottom","y":1.02,"xanchor":"right","x":1},"paper_bgcolor":"rgba(0,0,0,0)","plot_bgcolor":"rgba(0,0,0,0)","colorway":["#fb923c","#f472b6","#a78bfa","#facc15","#34d399","#38bdf8","#e879f9","#f87171"],"xaxis":{"title":{"font":{"size":12,"color":"#a1a1aa"}},"showgrid":true,"gridcolor":"rgba(255,255,255,.06)","zeroline":false,"tickfont":{"size":10},"tickangle":-45},"yaxis":{"title":{"font":{"size":12,"color":"#a1a1aa"}},"showgrid":true,"gridcolor":"rgba(255,255,255,.06)","zeroline":false,"tickfont":{"size":10}},"height":400},                        {"responsive": true}                    )                };            </script>        </div></div>
+<div class="chart-card"><div>                            <div id="7cb9820d-7564-43d7-8b1a-ba77850ef2f5" class="plotly-graph-div" style="height:350px; width:100%;"></div>            <script type="text/javascript">                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("7cb9820d-7564-43d7-8b1a-ba77850ef2f5")) {                    Plotly.newPlot(                        "7cb9820d-7564-43d7-8b1a-ba77850ef2f5",                        [{"marker":{"color":["#ef4444","#ef4444","#f97316","#f97316","#ef4444","#f97316"]},"orientation":"h","text":["-0.058","-0.123","+0.178","+0.184","-0.242","+0.384"],"textfont":{"size":10},"textposition":"outside","x":[-0.0575,-0.1234,0.1782,0.1844,-0.2425,0.3843],"y":["RANK \u00d7 GPA","GRE \u00d7 RANK","ADMIT \u00d7 GPA","GRE \u00d7 ADMIT","RANK \u00d7 ADMIT","GRE \u00d7 GPA"],"type":"bar"}],                        {"template":{"data":{"barpolar":[{"marker":{"line":{"color":"rgb(17,17,17)","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"bar":[{"error_x":{"color":"#f2f5fa"},"error_y":{"color":"#f2f5fa"},"marker":{"line":{"color":"rgb(17,17,17)","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"carpet":[{"aaxis":{"endlinecolor":"#A2B1C6","gridcolor":"#506784","linecolor":"#506784","minorgridcolor":"#506784","startlinecolor":"#A2B1C6"},"baxis":{"endlinecolor":"#A2B1C6","gridcolor":"#506784","linecolor":"#506784","minorgridcolor":"#506784","startlinecolor":"#A2B1C6"},"type":"carpet"}],"choropleth":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"choropleth"}],"contourcarpet":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"contourcarpet"}],"contour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"contour"}],"heatmap":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"heatmap"}],"histogram2dcontour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2dcontour"}],"histogram2d":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2d"}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"mesh3d":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"mesh3d"}],"parcoords":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"parcoords"}],"pie":[{"automargin":true,"type":"pie"}],"scatter3d":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatter3d"}],"scattercarpet":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattercarpet"}],"scattergeo":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattergeo"}],"scattergl":[{"marker":{"line":{"color":"#283442"}},"type":"scattergl"}],"scattermapbox":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattermapbox"}],"scattermap":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattermap"}],"scatterpolargl":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolargl"}],"scatterpolar":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolar"}],"scatter":[{"marker":{"line":{"color":"#283442"}},"type":"scatter"}],"scatterternary":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterternary"}],"surface":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"surface"}],"table":[{"cells":{"fill":{"color":"#506784"},"line":{"color":"rgb(17,17,17)"}},"header":{"fill":{"color":"#2a3f5f"},"line":{"color":"rgb(17,17,17)"}},"type":"table"}]},"layout":{"annotationdefaults":{"arrowcolor":"#f2f5fa","arrowhead":0,"arrowwidth":1},"autotypenumbers":"strict","coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]],"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]},"colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#f2f5fa"},"geo":{"bgcolor":"rgb(17,17,17)","lakecolor":"rgb(17,17,17)","landcolor":"rgb(17,17,17)","showlakes":true,"showland":true,"subunitcolor":"#506784"},"hoverlabel":{"align":"left"},"hovermode":"closest","mapbox":{"style":"dark"},"paper_bgcolor":"rgb(17,17,17)","plot_bgcolor":"rgb(17,17,17)","polar":{"angularaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"bgcolor":"rgb(17,17,17)","radialaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""}},"scene":{"xaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","gridwidth":2,"linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3"},"yaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","gridwidth":2,"linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3"},"zaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","gridwidth":2,"linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3"}},"shapedefaults":{"line":{"color":"#f2f5fa"}},"sliderdefaults":{"bgcolor":"#C8D4E3","bordercolor":"rgb(17,17,17)","borderwidth":1,"tickwidth":0},"ternary":{"aaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"baxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"bgcolor":"rgb(17,17,17)","caxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""}},"title":{"x":0.05},"updatemenudefaults":{"bgcolor":"#506784","borderwidth":0},"xaxis":{"automargin":true,"gridcolor":"#283442","linecolor":"#506784","ticks":"","title":{"standoff":15},"zerolinecolor":"#283442","zerolinewidth":2},"yaxis":{"automargin":true,"gridcolor":"#283442","linecolor":"#506784","ticks":"","title":{"standoff":15},"zerolinecolor":"#283442","zerolinewidth":2}}},"title":{"font":{"size":15,"color":"#fafafa"},"text":"Top Correlated Feature Pairs","x":0.01,"xanchor":"left"},"font":{"family":"'Inter',system-ui,sans-serif","size":13,"color":"#a1a1aa"},"margin":{"l":52,"r":24,"t":56,"b":48},"legend":{"font":{"size":11},"orientation":"h","yanchor":"bottom","y":1.02,"xanchor":"right","x":1},"paper_bgcolor":"rgba(0,0,0,0)","plot_bgcolor":"rgba(0,0,0,0)","colorway":["#fb923c","#f472b6","#a78bfa","#facc15","#34d399","#38bdf8","#e879f9","#f87171"],"xaxis":{"title":{"font":{"size":12,"color":"#a1a1aa"}},"showgrid":true,"gridcolor":"rgba(255,255,255,.06)","zeroline":false},"yaxis":{"title":{"font":{"size":12,"color":"#a1a1aa"}},"showgrid":true,"gridcolor":"rgba(255,255,255,.06)","zeroline":false},"height":350},                        {"responsive": true}                    )                };            </script>        </div></div></div>
+    
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:#f9731622">🤖</div>
+      <div>
+        <h2>Machine Learning Recommendation</h2>
+        <div class="section-subtitle">Model suggestions based on dataset characteristics, outliers, and correlations</div>
+      </div>
+    </div>
+    <div class="task-badge">Classification</div>
+    
+    <div class="target-box">
+      <strong>Target Variable:</strong> RANK
+      <br><span style='font-size:.82rem;color:#a1a1aa'>Column &#x27;RANK&#x27; identified as target (categorical, 4 unique values).</span>
+    </div>
+    <div class="model-grid">
+        <div class="model-card">
+          <span class="rank">#1</span>
+          <h4>Random Forest Classifier</h4>
+          <div class="score-bar"><div class="score-fill" style="width:85%"></div></div>
+          <div class="score-label">Suitability: 85/100</div>
+          <div class="reason">Strong baseline for 400 rows. Handles mixed features and provides feature importance.</div>
+          <div class="pros-cons">
+            <div><div class="pros-title">✓ Pros</div><ul><li>Robust to overfitting</li><li>Handles missing data implicitly</li><li>Feature importance</li></ul></div>
+            <div><div class="cons-title">✗ Cons</div><ul><li>Slower inference than linear models</li><li>Less interpretable than single tree</li></ul></div>
+          </div>
+        </div>
+        <div class="model-card">
+          <span class="rank">#2</span>
+          <h4>Logistic Regression</h4>
+          <div class="score-bar"><div class="score-fill" style="width:78%"></div></div>
+          <div class="score-label">Suitability: 78/100</div>
+          <div class="reason">Simple, interpretable, and fast. Good starting point for classification.</div>
+          <div class="pros-cons">
+            <div><div class="pros-title">✓ Pros</div><ul><li>Fast training/inference</li><li>Highly interpretable</li><li>Probabilistic output</li></ul></div>
+            <div><div class="cons-title">✗ Cons</div><ul><li>Assumes linear decision boundary</li><li>Requires feature scaling</li><li>Struggles with non-linear patterns</li></ul></div>
+          </div>
+        </div>
+        <div class="model-card">
+          <span class="rank">#3</span>
+          <h4>Support Vector Classifier</h4>
+          <div class="score-bar"><div class="score-fill" style="width:72%"></div></div>
+          <div class="score-label">Suitability: 72/100</div>
+          <div class="reason">Effective on smaller datasets with clear margins between classes.</div>
+          <div class="pros-cons">
+            <div><div class="pros-title">✓ Pros</div><ul><li>Effective in high dimensions</li><li>Memory efficient (support vectors)</li><li>Kernel trick for non-linear</li></ul></div>
+            <div><div class="cons-title">✗ Cons</div><ul><li>Slow on large datasets</li><li>Sensitive to feature scaling</li><li>No probability estimates by default</li></ul></div>
+          </div>
+        </div></div>
+    
+    <div class="card" style="margin-top:16px">
+      <h3>Recommended Preprocessing Pipeline</h3>
+      <ol class="prep-steps"><li>Handle missing values (0 total missing cells)</li><li>Encode categorical variables (One-Hot or Target Encoding)</li><li>Scale numeric features (StandardScaler)</li><li>Split data into train/test (80/20 stratified)</li></ol>
+    </div>
+    
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:#22c55e22">💡</div>
+      <div>
+        <h2>Marketing Insights</h2>
+        <div class="section-subtitle">AI-generated production-grade analysis</div>
+      </div>
+    </div>
+    <div class="insights-grid">
+        <div class="insight-card impact-medium">
+          <div class="insight-header">
+            <span class="insight-badge badge-anomaly">anomaly</span>
+            <span class="insight-impact">medium impact</span>
+          </div>
+          <h4>Outliers Detected (1.2% of Rows)</h4>
+          <div class="detail">5 outlier points across 2 columns. Most affected: GRE, GPA.</div>
+          <div class="insight-rec">
+            <strong>Recommendation</strong><br>
+            Review outliers for data quality issues. Consider Winsorization (capping at 1st/99th percentile) or robust scaling.
+          </div>
+        </div></div>
+  </div>
+
+  <div class="section">
+    <div class="info-grid">
+      <div class="card">
+        <h3>Data Quality</h3>
+        <div class="quality-grid">
+          <div class="quality-item"><span class="ql">Rows</span><span class="qv">400</span></div>
+          <div class="quality-item"><span class="ql">Columns</span><span class="qv">4</span></div>
+          <div class="quality-item"><span class="ql">Duplicates</span><span class="qv">5</span></div>
+          <div class="quality-item"><span class="ql">Missing</span><span class="qv">0 (0.0%)</span></div>
+          <div class="quality-item"><span class="ql">Memory</span><span class="qv">0.0 MB</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Analyst Summary</h3>
+        <ul class="nar-list"><li>Dashboard auto-generated from detected column types.</li><li>Charts show distributions, relationships, and trends in the data.</li></ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>Generated by Pro Dashboard Generator v2</span>
+    <button class="print-btn no-print" onclick="window.print()">🖨 Export PDF</button>
+  </div>
+</div>
+</body>
+</html>
