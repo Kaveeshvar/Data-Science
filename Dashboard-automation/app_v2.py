@@ -19,7 +19,7 @@ from dashboard_v2 import (
 # ── Page config ──────────────────────────────────────────────────
 
 st.set_page_config(
-    page_title="Pro Dashboard Generator v2",
+    page_title="Auto Data Intelligence Engine v3",
     page_icon="📊",
     layout="centered",
 )
@@ -31,10 +31,11 @@ _ensure_io_dirs()
 st.markdown(
     """
     <div style="text-align:center;padding:16px 0 8px">
-        <h1 style="margin-bottom:4px">📊 Pro Dashboard Generator <sup style="font-size:.55em;color:#818cf8">v2</sup></h1>
+        <h1 style="margin-bottom:4px">📊 Auto Data Intelligence Engine <sup style="font-size:.55em;color:#818cf8">v3</sup></h1>
         <p style="color:#8b949e;font-size:.9rem;margin:0">
-            Upload a dataset → get a production-grade interactive dashboard with AI insights, outlier analysis,
-            correlation heatmaps, and ML recommendations.
+            Upload ANY dataset → get a full analytics dashboard, auto-trained ML model,
+            evaluation charts, feature importance, segmentation, anomaly detection,
+            and an in-browser prediction simulator.
         </p>
     </div>
     """,
@@ -73,6 +74,23 @@ with col2:
         options=list(theme_options.keys()),
         format_func=lambda k: theme_options[k],
         help="Auto-detect picks a theme based on the dataset domain (finance → Ocean, medical → Clinical, etc.)",
+    )
+
+col3, col4 = st.columns(2)
+
+with col3:
+    enable_ml = st.toggle(
+        "Auto ML Pipeline",
+        value=True,
+        help="Enables v3 features: auto target detection, model training, evaluation charts, "
+             "feature importance, segmentation, anomaly detection, and in-browser prediction.",
+    )
+
+with col4:
+    st.caption("")
+    st.caption(
+        "v3 adds: 🤖 Auto-trained model · 🎯 Feature importance · "
+        "🧩 Segmentation · 🔍 Anomaly detection · 🧪 Live predictor"
     )
 
 output_name = st.text_input(
@@ -117,6 +135,7 @@ if st.button("🚀 Generate Dashboard", type="primary", use_container_width=True
                 out_html=final_output_name,
                 use_groq=use_groq,
                 theme_override=theme_override,
+                disable_ml=not enable_ml,
             )
 
             progress_bar.progress(100, text="Dashboard generated!")
@@ -162,10 +181,10 @@ st.divider()
 st.markdown(
     """
     <div style="text-align:center;color:#484f58;font-size:.75rem;padding:8px 0">
-        <strong>Pro Dashboard Generator v2</strong> &middot;
-        6 themes &middot; AI insights &middot; Outlier analysis &middot;
-        Correlation heatmaps &middot; ML recommendations<br>
-        Powered by Plotly + Groq (Llama 3.3 70B)
+        <strong>Auto Data Intelligence Engine v3</strong> &middot;
+        6 themes &middot; AI insights &middot; Outlier &amp; Anomaly detection &middot;
+        Correlation heatmaps &middot; Auto ML &middot; Segmentation &middot; Live Predictor<br>
+        Powered by Plotly + scikit-learn + ONNX Runtime + Groq (Llama 3.3 70B)
     </div>
     """,
     unsafe_allow_html=True,

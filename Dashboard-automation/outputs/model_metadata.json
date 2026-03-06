@@ -1,0 +1,110 @@
+{
+  "target_column": "Response",
+  "problem_type": "classification",
+  "model_type": "RandomForestClassifier",
+  "features": {
+    "numeric": [
+      "Year_Birth",
+      "Income",
+      "Kidhome",
+      "Teenhome",
+      "Recency",
+      "MntWines",
+      "MntFruits",
+      "MntMeatProducts",
+      "MntFishProducts",
+      "MntSweetProducts",
+      "MntGoldProds",
+      "NumDealsPurchases",
+      "NumWebPurchases",
+      "NumCatalogPurchases",
+      "NumStorePurchases",
+      "NumWebVisitsMonth",
+      "AcceptedCmp3",
+      "AcceptedCmp4",
+      "AcceptedCmp5",
+      "AcceptedCmp1",
+      "AcceptedCmp2",
+      "Complain",
+      "Z_CostContact",
+      "Z_Revenue"
+    ],
+    "categorical": [
+      "Education",
+      "Marital_Status"
+    ]
+  },
+  "label_map": null,
+  "inverse_label_map": null,
+  "training_metrics": {
+    "cv_metric": "roc_auc_ovr_weighted",
+    "cv_score": 0.8776
+  },
+  "evaluation_metrics": {
+    "problem_type": "classification",
+    "accuracy": 0.9688,
+    "f1_weighted": 0.9675,
+    "roc_auc": 0.9988,
+    "pr_auc": 0.9928
+  },
+  "cv_results": [
+    {
+      "name": "LogisticRegression",
+      "mean_score": 0.8717,
+      "std_score": 0.0165,
+      "scores": [
+        0.8791,
+        0.8399,
+        0.8876,
+        0.8738,
+        0.8778
+      ]
+    },
+    {
+      "name": "RandomForestClassifier",
+      "mean_score": 0.8776,
+      "std_score": 0.0128,
+      "scores": [
+        0.8853,
+        0.8539,
+        0.8899,
+        0.8749,
+        0.8838
+      ]
+    }
+  ],
+  "feature_importance": {
+    "num__Recency": 0.095873,
+    "num__Income": 0.077976,
+    "num__MntWines": 0.075813,
+    "num__MntMeatProducts": 0.074843,
+    "num__MntGoldProds": 0.052616,
+    "num__AcceptedCmp5": 0.05143,
+    "num__AcceptedCmp3": 0.05078,
+    "num__Year_Birth": 0.04574,
+    "num__NumWebVisitsMonth": 0.044935,
+    "num__MntSweetProducts": 0.043928,
+    "num__MntFruits": 0.041392,
+    "num__AcceptedCmp1": 0.040747,
+    "num__NumCatalogPurchases": 0.04072,
+    "num__NumStorePurchases": 0.039482,
+    "num__MntFishProducts": 0.038474,
+    "num__NumWebPurchases": 0.031169,
+    "num__NumDealsPurchases": 0.030907,
+    "num__Teenhome": 0.012923,
+    "cat__Marital_Status_Single": 0.012774,
+    "cat__Education_PhD": 0.011984,
+    "num__AcceptedCmp2": 0.011438,
+    "num__AcceptedCmp4": 0.010675,
+    "cat__Marital_Status_Married": 0.010228,
+    "cat__Marital_Status_Divorced": 0.008945,
+    "cat__Marital_Status_Together": 0.008819,
+    "cat__Education_Graduation": 0.008437,
+    "num__Kidhome": 0.008186,
+    "cat__Marital_Status_Widow": 0.005883,
+    "cat__Education_Master": 0.004913,
+    "cat__Education_2n Cycle": 0.003321
+  },
+  "n_training_rows": 2240,
+  "sampled": false
+}
